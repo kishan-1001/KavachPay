@@ -29,21 +29,21 @@
 
 Every existing parametric insurance platform — including the one exploited in the DEVTrails crisis scenario — makes **one fatal assumption:**
 
-> *"If GPS says a worker is in a disruption zone, they must be there."*
+> *"If GPS says a worker is in a disruption zone, they  must be there."*
 
 **KavachPay rejects this assumption entirely.**
 
-We invented the **Work-Proof Protocol (WPP)** — a behavioral fingerprinting system that builds an unforgeable digital proof of a worker's real activity, verified entirely through the browser and server-side signals. No GPS trust. No single point of failure.
+We invented the **Work-Proof Protocol (WPP)** — a behavioral fingerprinting system that builds a tamper-evident digital proof of a worker's real activity, verified entirely through the browser and server-side signals. No GPS trust. No single point of failure.
 
 ```
 Traditional Platforms:          KavachPay:
 ─────────────────────           ──────────────────────────────────
 GPS Location → Trust            Work Behavior → Verify → Trust
      ↓                                ↓
- Spoofable ❌                   Unspoofable ✅
+ Spoofable ❌                   High-Cost to Spoof ✅
 ```
 
-The core insight: **You can fake where you are. You cannot fake how you work.**
+The core insight: **You can fake where you are. Faking sustained work behavior across multiple independent signals is far harder.**
 
 A real delivery worker's browser session produces dozens of verifiable signals — login timestamps aligned with peak delivery hours, order history activity, IP geolocation cross-matched against registered city, browser interaction patterns during active work hours, and real-time delivery platform activity drops during disruptions. These form a **behavioral work fingerprint** that no Telegram syndicate can coordinate at scale.
 
@@ -168,14 +168,14 @@ Every existing approach fights the spoofer on the spoofer's terrain — the GPS 
 
 ## 🔧 The Work-Proof Engine <a name="work-proof-engine"></a>
 
-The Work-Proof Engine runs server-side and builds a **tamper-evident digital proof** of each worker's active session. Since it lives on the backend, no client-side GPS spoofer can manipulate it.
+The Work-Proof Engine runs server-side and builds a **tamper-evident digital proof** of each worker's active session. Since it lives on the backend, client-side GPS spoofers cannot directly manipulate these records and must resort to more detectable high-cost evasion methods.
 
 ### What Gets Recorded Per Session (Every 5 Minutes)
 
 ```
 Work-Proof Session Record {
   worker_id:              UUID (registered user)
-  session_start:          timestamp (server-side, cannot be faked)
+  session_start:          timestamp (server-side, difficult to backdate)
   session_active_minutes: total active time on dashboard
   login_hour:             aligns with typical work hours?
   ip_address:             consistent with registered city?
@@ -193,7 +193,7 @@ On the web, we cannot use cell towers directly — but we have equally powerful 
 
 **IP Geolocation:** When Arjun logs into KavachPay, his IP address reveals his city-level location via ISP data. This is:
 - Completely independent of GPS
-- Cannot be faked by a GPS spoofing app
+- Not affected by a GPS spoofing app
 - Verifiable server-side — the client never touches this logic
 
 ```
@@ -286,7 +286,7 @@ output:
 
 ### Model 3 — Environmental Consensus Engine
 
-**Purpose:** Confirm the disruption actually happened using sources that cannot be spoofed by a device.
+**Purpose:** Confirm the disruption actually happened using sources that are independent of the worker device and therefore much harder to spoof at scale.
 
 ```
 SOURCE TIER 1 (Satellite / Physical Infrastructure — Cannot be device-spoofed):
@@ -346,12 +346,12 @@ We assume attackers who can:
 - Automate claim submissions using bots or scripts
 - Operate at scale with synchronized timing
 
-We assume they cannot:
-- Change their real IP address and ISP city data served to our backend
-- Replicate a registered user's behavioral session fingerprint at scale
-- Change what IMD satellites and TomTom physical sensors independently detect
-- Produce a valid cryptographically-chained Work-Proof session from a bot
-- Coordinate 500 unique, realistic behavioral profiles simultaneously
+We assume the following actions are possible in theory but high-cost, inconsistent at scale, and detectable in practice:
+- Hiding real network provenance long-term without triggering VPN/proxy/anomaly signals
+- Replicating a registered user's behavioral session fingerprint across many accounts
+- Influencing IMD satellite signals and TomTom physical sensor outputs
+- Producing valid cryptographically-chained Work-Proof sessions from bot-driven flows
+- Coordinating 500 unique, realistic behavioral profiles with natural variance
 
 ---
 
@@ -385,7 +385,7 @@ A fraudster using a GPS spoofer on their phone can fake their device location �
 
 ### 2. Data Points Beyond GPS
 
-KavachPay analyzes **10 independent signal categories** — all server-side or from unspoofable external sources:
+KavachPay analyzes **10 independent signal categories** — all server-side or from external sources that are independent of worker-device GPS:
 
 | # | Signal | Source | Spoofable by GPS app? | What It Catches |
 |---|---|---|---|---|
@@ -400,7 +400,7 @@ KavachPay analyzes **10 independent signal categories** — all server-side or f
 | 9 | **Claim Timestamp Entropy** | GNN backend | No | Coordinated Telegram attacks |
 | 10 | **IP Subnet Cluster Score** | GNN backend | No | Fraud ring from same network |
 
-Signals 1, 2, 3, 7, 8, 9, and 10 are completely immune to client-side GPS spoofing.
+Signals 1, 2, 3, 7, 8, 9, and 10 are materially more resistant to client-side GPS spoofing and raise attacker cost significantly.
 
 ---
 
@@ -734,7 +734,7 @@ Total time: < 90 seconds from threshold breach
 | Category | Service | Role |
 |---|---|---|
 | Weather Primary | OpenWeather API | Real-time rainfall, temperature, storm alerts |
-| Weather Satellite | IMD / Mausam | Government satellite data — unspoofable |
+| Weather Satellite | IMD / Mausam | Government satellite data — independent of worker-device GPS |
 | Air Quality | AQICN | AQI-based disruption detection |
 | Traffic | TomTom Traffic API | Physical congestion sensors |
 | Maps | TomTom Maps Web SDK | Zone risk map on dashboard |
@@ -759,6 +759,85 @@ A spoofed GPS cannot change what city Arjun registered under.
 ---
 
 ## 🏗️ System Architecture <a name="architecture"></a>
+
+### Mermaid Architecture Diagram
+
+```mermaid
+flowchart LR
+  subgraph U[User Layer]
+    W[Gig Worker Browser App]
+    A[Admin Console]
+  end
+
+  subgraph F[Frontend]
+    R[React + Vite + Tailwind]
+  end
+
+  subgraph B[Core Backend - Node.js + Express]
+    AUTH[Auth + Policy APIs]
+    CLAIM[Claim Adjudication Pipeline]
+    MON[Monitoring Engine + Queue]
+    WPP[Work-Proof Session Tracker]
+  end
+
+  subgraph D[Data Layer]
+    PG[(PostgreSQL / NeonDB)]
+    REDIS[(Redis / Bull Queue)]
+  end
+
+  subgraph M[ML Service - FastAPI]
+    M1[Session Behavioral Authenticator\nIsolation Forest]
+    M2[Work-Proof Validator\nXGBoost]
+    M3[Environmental Consensus Scorer]
+    M4[Fraud Ring Detector\nGraph Model]
+  end
+
+  subgraph E[External Signals]
+    IMD[IMD]
+    OW[OpenWeather]
+    TT[TomTom Traffic]
+    AQI[AQICN]
+    MM[IP Geo Provider]
+    NEWS[NewsAPI]
+    DP[Delivery Platform Activity API]
+  end
+
+  subgraph P[Payout + Communication]
+    RZ[Razorpay Payouts]
+    TW[Twilio SMS / OTP]
+  end
+
+  W --> R
+  A --> R
+  R --> AUTH
+  R --> CLAIM
+
+  AUTH --> PG
+  CLAIM --> PG
+  WPP --> PG
+  MON --> REDIS
+  REDIS --> CLAIM
+
+  CLAIM --> M1
+  CLAIM --> M2
+  CLAIM --> M3
+  CLAIM --> M4
+
+  M2 --> DP
+  M3 --> IMD
+  M3 --> OW
+  M3 --> TT
+  M3 --> AQI
+  M3 --> NEWS
+  CLAIM --> MM
+
+  CLAIM --> RZ
+  CLAIM --> TW
+  RZ --> W
+  TW --> W
+
+  PG --> M4
+```
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -883,6 +962,19 @@ kavachpay/
 
 ## 💼 Business Model <a name="business-model"></a>
 
+### Why A Company Pays Even If No Delivery Was Completed
+
+At first glance, paying when no order was delivered sounds counterintuitive. In practice, this is the core value of parametric income protection.
+
+**Business logic for platform partners and insurers:**
+- **Worker retention:** If workers repeatedly earn zero during weather shutdowns, churn rises. Replacing workers is expensive.
+- **Supply reliability:** Fast compensation keeps workers active on the platform over time, reducing recovery lag after disruptions.
+- **Lower long-run support costs:** Objective, trigger-based payouts reduce disputes, escalations, and manual claims overhead.
+- **Brand trust and compliance posture:** Fair treatment during extreme events improves platform reputation and reduces regulatory pressure.
+- **Risk transfer model:** The platform does not need to self-fund all payouts. Risk is underwritten by an insurer; platform can co-fund premium or subsidize plans.
+
+In short: the payout is not for completed service. It is for verified income interruption during insured disruption events, which protects ecosystem stability.
+
 ### Revenue at Scale
 
 ```
@@ -920,7 +1012,7 @@ Net margin:          30%
 | **Originality** | Work-Proof Protocol + IP Geolocation anti-fraud — first-of-its-kind for parametric insurance |
 | **Technical Depth** | 4 ML models, cryptographic session chain, GNN fraud ring detector, full React web app |
 | **Direct Crisis Response** | The 500-worker Telegram attack fails on 7 of 10 signals simultaneously |
-| **Web-Native Anti-Fraud** | Server-side IP geolocation cannot be bypassed by any GPS spoofer on Earth |
+| **Web-Native Anti-Fraud** | Server-side network and behavior signals force attackers into higher-cost, more detectable evasion paths |
 | **Worker Fairness** | Partial advance payouts, VPN protection, Trust Score, document appeal |
 | **Complete Architecture** | Frontend + Backend + ML microservice + full folder structure ready to build |
 | **Scalability** | Vercel + NeonDB serverless — 100 to 10,000,000 workers, same codebase |
