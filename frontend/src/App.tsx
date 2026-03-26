@@ -9,12 +9,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <div className="min-h-screen bg-slate-950 text-slate-50">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            {/* Other routes will go here */}
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          {/* Other routes will go here */}
+        </Routes>
       </Router>
     </QueryClientProvider>
   );
