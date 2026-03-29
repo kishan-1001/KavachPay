@@ -8,7 +8,31 @@ import {
   MoveRight,
   ShieldCheck,
   Star,
+  ChevronDown
 } from 'lucide-react';
+
+const faqs = [
+  {
+    q: "What is KavachPay?",
+    a: "KavachPay is India's first autonomous safety net for gig workers. We provide automated financial protection against income disruptions caused by extreme weather (rain/heat) or platform outages."
+  },
+  {
+    q: "How do autonomous payouts work?",
+    a: "We monitor real-time data from IMD and OpenWeather. When a disruption threshold is met in your specific zone (e.g., heavy rain), a 60% daily coverage payout is triggered automatically to your UPI ID."
+  },
+  {
+    q: "Do I need to file a claim manually?",
+    a: "No! Our 'Smart Trigger Engine' handles everything. Once the environmental condition is verified and your work presence is confirmed, the settlement is processed without any paperwork."
+  },
+  {
+    q: "Which platforms and cities are supported?",
+    a: "We currently support Zomato, Swiggy, Zepto, and Blinkit workers across 24+ major Indian cities, including Mumbai, Delhi, Bangalore, and Hyderabad."
+  },
+  {
+    q: "Is my data secure?",
+    a: "Absolutely. We use bank-grade encryption for all worker data. We only access the minimum information required to verify your work-proof and process your payouts."
+  }
+];
 
 const disruptionFeed = [
   'LIVE DISRUPTION INDEX',
@@ -64,6 +88,7 @@ const steps = [
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const [openFaq, setOpenFaq] = React.useState<number | null>(null);
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
@@ -133,6 +158,7 @@ const Landing: React.FC = () => {
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
+                onClick={() => navigate('/signup')}
                 className="w-full rounded-lg bg-blue-700 px-8 py-3.5 text-base font-semibold text-white shadow-md transition-colors duration-200 active:scale-95 hover:bg-blue-800 hover:shadow-lg sm:w-auto cursor-pointer"
               >
                 Get Protected
@@ -429,6 +455,44 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* Standalone FAQ Section (White Background) */}
+      <section className="py-24 bg-white relative">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-serif font-bold text-slate-900 mb-4 tracking-tight">Common Questions</h2>
+            <div className="h-1.5 w-16 bg-blue-600 mx-auto rounded-full mb-6"></div>
+          </div>
+
+          <div className="space-y-4 max-w-3xl mx-auto">
+            {faqs.map((faq, i) => (
+              <div
+                key={i}
+                className={`border-2 rounded-2xl transition-all duration-300 ${openFaq === i ? 'border-blue-600 bg-blue-50/40 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200'}`}
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full px-5 py-5 sm:px-7 sm:py-6 flex items-center justify-between text-left cursor-pointer group"
+                >
+                  <span className={`text-sm sm:text-base font-bold transition-colors ${openFaq === i ? 'text-blue-900' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                    {faq.q}
+                  </span>
+                  <div className={`flex-shrink-0 ml-4 p-1 rounded-full transition-all duration-300 ${openFaq === i ? 'bg-blue-600 text-white rotate-180' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'}`}>
+                    <ChevronDown size={18} />
+                  </div>
+                </button>
+                {openFaq === i && (
+                  <div className="px-5 pb-6 sm:px-7 sm:pb-8 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <p className="text-slate-600 leading-relaxed text-xs sm:text-sm font-medium">
+                      {faq.a}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto w-full max-w-6xl px-4 pb-14 md:px-7 md:pb-16 lg:px-10">
         <div className="rounded-[2rem] bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 px-5 py-12 text-center text-white shadow-2xl sm:px-8 sm:py-16">
           <h2 className="mx-auto max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
@@ -437,9 +501,10 @@ const Landing: React.FC = () => {
           </h2>
           <button
             type="button"
+            onClick={() => navigate('/signup')}
             className="mt-8 inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-6 py-3 text-sm font-bold text-slate-900 sm:px-8 cursor-pointer"
           >
-            Join 15,000+ Workers
+            Join us now
             <MoveRight size={14} />
           </button>
           <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
