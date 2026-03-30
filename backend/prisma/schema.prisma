@@ -55,20 +55,32 @@ model Policy {
 }
 
 model WorkSession {
-  id                  String    @id @default(uuid())
+  id                  String           @id @default(uuid())
   userId              String
-  startTime           DateTime  @default(now())
+  startTime           DateTime         @default(now())
   endTime             DateTime?
-  activeMinutes       Int       @default(0)
+  activeMinutes       Int              @default(0)
   ipAddress           String
   ipCity              String?
-  platformActiveFlag  Boolean   @default(true)
+  platformActiveFlag  Boolean          @default(true)
   sessionHash         String
   previousSessionHash String?
-  createdAt           DateTime  @default(now())
-  user                User      @relation(fields: [userId], references: [id])
+  heartbeats         WorkHeartbeat[] // Relation to individual 60s pulses
+  createdAt           DateTime        @default(now())
+  user                User             @relation(fields: [userId], references: [id])
 
   @@index([userId, startTime(sort: Desc)])
+}
+
+model WorkHeartbeat {
+  id        String   @id @default(uuid())
+  sessionId String
+  timestamp DateTime @default(now())
+  ipAddress String
+  hash      String
+  session   WorkSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
 }
 
 model EnvironmentalEvent {
@@ -89,6 +101,8 @@ model Claim {
   status           ClaimStatus
   fraudScore       Float?
   workProofScore   Float?
+  behavioralScore  Float?
+  isChainValid     Boolean     @default(true)
   payoutAmount     Int?
   razorpayPayoutId String?     @unique
   reviewerNotes    String?

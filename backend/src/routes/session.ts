@@ -54,7 +54,14 @@ router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response
           ipAddress,
           ipCity: userCity, 
           sessionHash,
-          platformActiveFlag: true // Simulating that they are active on Zomato/Swiggy API
+          platformActiveFlag: true,
+          heartbeats: {
+            create: {
+              ipAddress,
+              hash: sessionHash,
+              timestamp: now
+            }
+          }
         }
       });
     } else {
@@ -62,7 +69,6 @@ router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response
       const newActiveMinutes = session.activeMinutes + 1;
       const sessionDataString = `${userId}-${newActiveMinutes}-${ipAddress}-${session.startTime.toISOString()}`;
       
-      // We cryptographically link this update to the previous hash to build a tamper-evident blockchain-like record
       const newSessionHash = crypto
         .createHmac('sha256', JWT_SECRET)
         .update(sessionDataString + session.sessionHash) 
@@ -74,7 +80,14 @@ router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response
           activeMinutes: newActiveMinutes,
           previousSessionHash: session.sessionHash,
           sessionHash: newSessionHash,
-          endTime: now
+          endTime: now,
+          heartbeats: {
+            create: {
+              ipAddress,
+              hash: newSessionHash,
+              timestamp: now
+            }
+          }
         }
       });
     }

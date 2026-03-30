@@ -260,28 +260,42 @@ const Dashboard: React.FC = () => {
 
                 <div className="bg-white/50 border border-white p-5 rounded-2xl shadow-sm space-y-3">
                   <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest text-center mb-4">Signal Breakdown</h4>
-                  <div className="space-y-2.5">
+                  <div className="space-y-4">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="flex items-center gap-2 text-slate-700 font-semibold"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> IP Location City</span>
+                      <span className="flex items-center gap-2 text-slate-700 font-semibold">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> IP Location City
+                      </span>
                       <span className="text-emerald-600 font-black uppercase">MATCHED</span>
                     </div>
+
                     <div className="flex justify-between items-center text-xs">
-                      <span className="flex items-center gap-2 text-slate-700 font-semibold"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Hash Chain Integrity</span>
-                      <span className="text-emerald-600 font-black uppercase">VERIFIED</span>
+                      <span className="flex items-center gap-2 text-slate-700 font-semibold">
+                        <div className={`w-1.5 h-1.5 rounded-full ${latestClaim.isChainValid ? 'bg-emerald-500' : 'bg-red-500'}`}></div> 
+                        Hash Chain Audit
+                      </span>
+                      <span className={`${latestClaim.isChainValid ? 'text-emerald-600' : 'text-red-600'} font-black uppercase`}>
+                        {latestClaim.isChainValid ? 'PASSED' : 'FAILED'}
+                      </span>
                     </div>
+
                     <div className="flex justify-between items-center text-xs">
-                      <span className="flex items-center gap-2 text-slate-700 font-semibold"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Behavioral Pattern</span>
-                      <span className="text-emerald-600 font-black uppercase">HUMAN</span>
+                      <span className="flex items-center gap-2 text-slate-700 font-semibold">
+                        <div className={`w-1.5 h-1.5 rounded-full ${latestClaim.behavioralScore > 0.6 ? 'bg-emerald-500' : 'bg-amber-500'}`}></div> 
+                        Behavioral Shield
+                      </span>
+                      <span className={`${latestClaim.behavioralScore > 0.6 ? 'text-emerald-600' : 'text-amber-600'} font-black uppercase`}>
+                        {latestClaim.behavioralScore > 0.8 ? 'HUMAN' : latestClaim.behavioralScore > 0.4 ? 'STABLE' : 'BOT'}
+                      </span>
                     </div>
                   </div>
                   
-                  {/* Real-time Evidence Box */}
-                  <div className="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
-                    <p className="text-[10px] uppercase font-black text-blue-400 mb-1 tracking-widest flex items-center gap-1.5">
-                      <TrendingUp className="w-3 h-3" /> External Consensus Signals
+                  {/* AI Adjudication Evidence */}
+                  <div className="mt-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                    <p className="text-[10px] uppercase font-black text-blue-400 mb-1.5 tracking-widest flex items-center gap-1.5">
+                      <TrendingUp className="w-3 H-3" /> ADJUDICATION LOG
                     </p>
-                    <p className="text-[11px] text-slate-600 leading-relaxed italic">
-                      {latestClaim.reviewerNotes || 'Comparing Open-Meteo & NewsAPI signals...'}
+                    <p className="text-[11px] text-slate-600 leading-relaxed italic font-medium">
+                      {latestClaim.reviewerNotes || 'Comparing Open-Meteo, NewsAPI & behavioral signals...'}
                     </p>
                   </div>
 
@@ -308,7 +322,7 @@ const Dashboard: React.FC = () => {
           <div className="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
           <ShieldAlert className={`w-6 h-6 z-10 ${isSimulating ? 'animate-bounce text-orange-400' : 'text-blue-400'}`} />
           <span className="z-10 text-sm uppercase">
-            {isSimulating ? 'Analyzing Disruption...' : 'Simulate Monsoon Storm'}
+            {isSimulating ? 'Running ML Consensus...' : 'Analyze Environmental Risk'}
           </span>
         </button>
       </div>

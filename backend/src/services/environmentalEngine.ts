@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const NEWS_API_KEY = process.env.NEWS_API_KEY || '';
+const AQI_API_KEY = process.env.AQI_API_KEY || '';
 
 interface WeatherResult {
   precipitation: number;
@@ -11,6 +12,11 @@ interface WeatherResult {
 interface NewsResult {
   count: number;
   headlines: string[];
+}
+
+interface AQIResult {
+  aqi: number;
+  description: string;
 }
 
 export async function getCityCoordinates(city: string) {
@@ -49,7 +55,7 @@ export async function getRealNews(city: string): Promise<NewsResult | null> {
   if (!NEWS_API_KEY) return null;
   try {
     const today = new Date().toISOString().split('T')[0];
-    const res = await axios.get(`https://newsapi.org/v2/everything?q=${city}+flood+OR+rain+OR+heavy+OR+disruption&from=${today}&sortBy=relevancy&apiKey=${NEWS_API_KEY}`);
+    const res = await axios.get(`https://newsapi.org/v2/everything?q=${city}+flood+OR+rain+OR+heavy+OR+disruption+OR+smog+OR+pollution&from=${today}&sortBy=relevancy&apiKey=${NEWS_API_KEY}`);
     
     return {
       count: res.data.totalResults || 0,
@@ -61,13 +67,31 @@ export async function getRealNews(city: string): Promise<NewsResult | null> {
   }
 }
 
+export async function getAQIData(city: string): Promise<AQIResult | null> {
+  if (!AQI_API_KEY) return null;
+  try {
+    const res = await axios.get(`https://api.waqi.info/feed/${city}/?token=${AQI_API_KEY}`);
+    if (res.data.status === 'ok') {
+      return {
+        aqi: res.data.data.aqi,
+        description: `AQI ${res.data.data.aqi}`
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('AQICN error:', error);
+    return null;
+  }
+}
+
 export async function calculateConsensus(city: string) {
   const coords = await getCityCoordinates(city);
   if (!coords) return null;
 
-  const [weather, news] = await Promise.all([
+  const [weather, news, aqi] = await Promise.all([
     getRealWeather(coords.lat, coords.lon),
-    getRealNews(city)
+    getRealNews(city),
+    getAQIData(city)
   ]);
 
   let disruptionScore = 0.05; // Base
@@ -86,9 +110,16 @@ export async function calculateConsensus(city: string) {
     evidence.push(`News: ${news.count} related reports found in ${city} via NewsAPI.`);
   }
 
+  // AQI Scoring (User threshold 200)
+  if (aqi) {
+    if (aqi.aqi > 150) disruptionScore += 0.4;
+    if (aqi.aqi > 200) disruptionScore += 0.6; // hazardous
+    evidence.push(`AQI: ${aqi.aqi} (Air Quality Index) recorded via AQICN.`);
+  }
+
   return {
     disruptionScore: parseFloat(Math.min(disruptionScore, 1.0).toFixed(2)),
     evidence: evidence.join(' | '),
-    raw: { weather, news }
+    raw: { weather, news, aqi }
   };
 }
