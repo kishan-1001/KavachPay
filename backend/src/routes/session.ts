@@ -2,32 +2,18 @@ import express, { type Response } from 'express';
 import crypto from 'crypto';
 import { authMiddleware, type AuthRequest } from '../middleware/authMiddleware.js';
 import prisma from '../prismaClient.js';
+import { resolveIpContext } from '../services/ipIntel.js';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
-
-// A mock utility to simulate real Indian ISP blocks for localhost testing
-const generateMockIPForCity = (city: string) => {
-  const cityMocks: Record<string, string> = {
-    'Bengaluru': '103.116.14.22', // Mock BSNL / Jio IP
-    'Mumbai': '49.36.195.10',     // Mock Airtel IP
-    'Delhi': '103.21.55.8',
-    'Chennai': '152.57.99.112',
-    'Hyderabad': '223.187.20.1'
-  };
-  return cityMocks[city] || '127.0.0.1';
-};
 
 router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.userId;
     const userCity = req.user!.city;
-
-    // Detect IP. If localhost, use our mock function for testing the geo-features later.
-    let ipAddress = req.ip || req.connection.remoteAddress || '127.0.0.1';
-    if (ipAddress === '::1' || ipAddress === '127.0.0.1' || ipAddress === '::ffff:127.0.0.1') {
-       ipAddress = generateMockIPForCity(userCity);
-    }
+    const ipContext = await resolveIpContext(req, userCity);
+    const ipAddress = ipContext.ip;
+    const ipCity = ipContext.city;
 
     const now = new Date();
     const fifteenMinsAgo = new Date(now.getTime() - 15 * 60000);
@@ -52,7 +38,7 @@ router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response
           startTime: now,
           activeMinutes: 1,
           ipAddress,
-          ipCity: userCity, 
+          ipCity,
           sessionHash,
           platformActiveFlag: true,
           heartbeats: {
@@ -78,6 +64,8 @@ router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response
         where: { id: session.id },
         data: {
           activeMinutes: newActiveMinutes,
+          ipAddress,
+          ipCity,
           previousSessionHash: session.sessionHash,
           sessionHash: newSessionHash,
           endTime: now,
@@ -96,12 +84,73 @@ router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response
       success: true,
       activeMinutes: session.activeMinutes,
       status: 'Tracking active Work-Proof ✅',
-      sessionHash: session.sessionHash
+      sessionHash: session.sessionHash,
+      ipCity: session.ipCity,
+      ipSource: ipContext.source,
     });
 
   } catch (error) {
     console.error('Work-Proof Heartbeat Error:', error);
     res.status(500).json({ error: 'Failed to record Work-Proof heartbeat.' });
+  }
+});
+
+router.get('/activity-stats', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+
+    const session = await prisma.workSession.findFirst({
+      where: { userId },
+      orderBy: { startTime: 'desc' },
+      include: {
+        heartbeats: {
+          orderBy: { timestamp: 'asc' },
+        },
+      },
+    });
+
+    if (!session) {
+      res.json({
+        activeMinutes: 0,
+        heartbeatCount: 0,
+        sessionAgeMins: 0,
+        lastHeartbeatAgoMins: null,
+        avgHeartbeatGapMs: 0,
+        jitterMs: 0,
+      });
+      return;
+    }
+
+    const now = Date.now();
+    const sessionAgeMins = (now - session.startTime.getTime()) / 60000;
+    const lastHb = session.heartbeats[session.heartbeats.length - 1];
+    const lastHeartbeatAgoMins = lastHb ? (now - lastHb.timestamp.getTime()) / 60000 : null;
+
+    const intervals: number[] = [];
+    for (let i = 1; i < session.heartbeats.length; i++) {
+      intervals.push(session.heartbeats[i].timestamp.getTime() - session.heartbeats[i - 1].timestamp.getTime());
+    }
+
+    const avgHeartbeatGapMs = intervals.length > 0
+      ? intervals.reduce((acc, val) => acc + val, 0) / intervals.length
+      : 0;
+
+    const variance = intervals.length > 0
+      ? intervals.reduce((acc, val) => acc + Math.pow(val - avgHeartbeatGapMs, 2), 0) / intervals.length
+      : 0;
+
+    res.json({
+      activeMinutes: session.activeMinutes,
+      heartbeatCount: session.heartbeats.length,
+      sessionAgeMins: Math.round(sessionAgeMins),
+      lastHeartbeatAgoMins: lastHeartbeatAgoMins !== null ? Math.round(lastHeartbeatAgoMins * 100) / 100 : null,
+      avgHeartbeatGapMs: Math.round(avgHeartbeatGapMs),
+      jitterMs: Math.round(Math.sqrt(variance)),
+      startedAt: session.startTime,
+    });
+  } catch (error) {
+    console.error('Activity stats error:', error);
+    res.status(500).json({ error: 'Failed to fetch activity stats.' });
   }
 });
 

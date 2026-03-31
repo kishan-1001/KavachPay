@@ -43,6 +43,27 @@ const Policy = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('kavachpay_token');
+
+      // Explicit free-plan path: skip payment order + Razorpay checkout entirely.
+      if (planTier === 'BASIC') {
+        const freeRes = await fetch('http://localhost:5000/api/policy/activate-free', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const freeData = await freeRes.json();
+        if (!freeRes.ok) {
+          alert(freeData.error || 'Failed to activate free policy');
+          return;
+        }
+
+        alert('Free tier activated! Your policy is active.');
+        navigate('/dashboard');
+        return;
+      }
       
       // 1. Create order
       const orderRes = await fetch('http://localhost:5000/api/policy/order', {
@@ -59,6 +80,20 @@ const Policy = () => {
       if (!orderRes.ok) {
         alert(orderData.error || 'Failed to create order');
         setLoading(false);
+        return;
+      }
+
+      // Hackathon testing: free tier activates instantly
+      if (orderData?.freeActivated) {
+        alert('Free tier activated! Your policy is active.');
+        navigate('/dashboard');
+        return;
+      }
+
+      // Test mode: paid tiers can be activated without Razorpay network flow.
+      if (orderData?.mockActivated) {
+        alert('Test mode active: policy activated with mock payment.');
+        navigate('/dashboard');
         return;
       }
 
@@ -162,14 +197,14 @@ const Policy = () => {
           {/* Basic Plan */}
           <div className="bg-white/5 border border-white/10 rounded-3xl p-8 hover:border-gray-500/50 transition duration-300 flex flex-col group relative overflow-hidden backdrop-blur-xl">
              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/[0.02] opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none"></div>
-             <h3 className="text-2xl font-bold text-white mb-2">Basic</h3>
+             <h3 className="text-2xl font-bold text-white mb-2">Free</h3>
              <div className="flex items-baseline gap-2 mb-6">
-               <span className="text-4xl font-extrabold text-white">₹35</span>
+               <span className="text-4xl font-extrabold text-white">₹0</span>
                <span className="text-gray-400">/ week</span>
              </div>
              
              <div className="mb-8 flex-grow">
-               <p className="text-sm text-gray-400 mb-6 border-b border-white/10 pb-6">Perfect for part-time riders looking for essential rain coverage.</p>
+               <p className="text-sm text-gray-400 mb-6 border-b border-white/10 pb-6">Free tier for testing the workflow end-to-end.</p>
                <ul className="space-y-4">
                  <li className="flex items-center gap-3 text-gray-300">
                    <div className="w-6 h-6 rounded bg-emerald-500/10 flex items-center justify-center flex-shrink-0"><CloudRain className="w-3 h-3 text-emerald-400" /></div>
@@ -191,7 +226,7 @@ const Policy = () => {
                disabled={loading}
                className="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 rounded-xl transition duration-300 cursor-pointer disabled:cursor-wait"
              >
-               {loading ? 'Processing...' : 'Select Basic'}
+               {loading ? 'Processing...' : 'Select Free'}
              </button>
           </div>
 

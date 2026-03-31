@@ -235,6 +235,7 @@ router.post('/login-verify', async (req: Request, res: Response) => {
         fullName: user.fullName,
         email: user.email,
         city: user.city,
+        role: user.role,
       }
     });
   } catch (error) {
@@ -302,6 +303,7 @@ router.post('/register', async (req: Request, res: Response) => {
         fullName: newUser.fullName,
         email: newUser.email,
         city: newUser.city,
+        role: newUser.role,
       },
     });
   } catch (error: any) {

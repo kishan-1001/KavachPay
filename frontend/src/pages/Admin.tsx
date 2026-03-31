@@ -20,8 +20,11 @@ const Admin: React.FC = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<any>(null);
   const [claims, setClaims] = useState<any[]>([]);
+  const [treasury, setTreasury] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [topupAmount, setTopupAmount] = useState(25000);
+  const [topupNote, setTopupNote] = useState('Hackathon demo top-up');
 
   useEffect(() => {
     const token = localStorage.getItem('kavachpay_token');
@@ -41,10 +44,14 @@ const Admin: React.FC = () => {
         const claimsRes = await fetch('http://localhost:5000/api/admin/claims', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+        const treasuryRes = await fetch('http://localhost:5000/api/admin/treasury', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
 
-        if (statsRes.ok && claimsRes.ok) {
+        if (statsRes.ok && claimsRes.ok && treasuryRes.ok) {
           setStats(await statsRes.json());
           setClaims(await claimsRes.json());
+          setTreasury(await treasuryRes.json());
         }
       } catch (err) {
         console.error('Admin fetch error:', err);
@@ -73,6 +80,34 @@ const Admin: React.FC = () => {
       }
     } catch (err) {
       console.error('Update status failed', err);
+    }
+  };
+
+  const handleTopupTreasury = async () => {
+    const token = localStorage.getItem('kavachpay_token');
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/treasury/topup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ amount: topupAmount, note: topupNote })
+      });
+
+      if (res.ok) {
+        const statsRes = await fetch('http://localhost:5000/api/admin/stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const treasuryRes = await fetch('http://localhost:5000/api/admin/treasury', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (treasuryRes.ok) setTreasury(await treasuryRes.json());
+      }
+    } catch (err) {
+      console.error('Treasury top-up failed', err);
     }
   };
 
@@ -148,6 +183,92 @@ const Admin: React.FC = () => {
             </div>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Platform Fraud Rate</p>
             <p className="text-3xl font-black mt-1">{stats?.fraudRate || 0}%</p>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl hover:border-cyan-500/30 transition group">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-cyan-500/10 rounded-2xl text-cyan-400 group-hover:scale-110 transition">
+                <Wallet className="w-6 h-6" />
+              </div>
+              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Treasury</span>
+            </div>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Current Demo Balance</p>
+            <p className="text-3xl font-black mt-1">₹{stats?.treasury?.balance?.toLocaleString() || 0}</p>
+          </div>
+        </section>
+
+        <section className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+          <div className="flex flex-col lg:flex-row gap-4 lg:items-end lg:justify-between">
+            <div>
+              <h3 className="font-bold text-slate-200">Treasury Simulator Controls</h3>
+              <p className="text-xs text-slate-500">Top up fake capital to demonstrate payout movement.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+              <input
+                type="number"
+                min={1}
+                value={topupAmount}
+                onChange={(e) => setTopupAmount(Number(e.target.value || 0))}
+                className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold outline-none"
+              />
+              <input
+                type="text"
+                value={topupNote}
+                onChange={(e) => setTopupNote(e.target.value)}
+                className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold outline-none"
+              />
+              <button
+                onClick={handleTopupTreasury}
+                className="bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl transition cursor-pointer"
+              >
+                Top Up
+              </button>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4 mt-5">
+            <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-3">
+              <p className="text-[10px] uppercase font-bold text-slate-500">Inflow</p>
+              <p className="text-lg font-black text-emerald-400">₹{treasury?.inflow?.toLocaleString() || 0}</p>
+            </div>
+            <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-3">
+              <p className="text-[10px] uppercase font-bold text-slate-500">Outflow</p>
+              <p className="text-lg font-black text-rose-400">₹{treasury?.outflow?.toLocaleString() || 0}</p>
+            </div>
+            <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-3">
+              <p className="text-[10px] uppercase font-bold text-slate-500">Transactions</p>
+              <p className="text-lg font-black text-cyan-300">{treasury?.transactionsCount || 0}</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto mt-5 border border-slate-800 rounded-xl">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-900 border-b border-slate-800">
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Time</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Type</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Direction</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Amount</th>
+                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Balance After</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                {(treasury?.transactions || []).slice(0, 8).map((tx: any) => (
+                  <tr key={tx.id} className="hover:bg-slate-800/30 transition">
+                    <td className="px-4 py-3 text-xs text-slate-300">{new Date(tx.createdAt).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-xs font-black text-slate-100 uppercase">{tx.type}</td>
+                    <td className={`px-4 py-3 text-xs font-black uppercase ${tx.direction === 'CREDIT' ? 'text-emerald-400' : 'text-rose-400'}`}>{tx.direction}</td>
+                    <td className="px-4 py-3 text-xs text-slate-200">₹{tx.amount}</td>
+                    <td className="px-4 py-3 text-xs text-cyan-300 font-bold">₹{tx.balanceAfter}</td>
+                  </tr>
+                ))}
+                {(treasury?.transactions || []).length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-xs text-slate-500">No treasury transactions yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </section>
 

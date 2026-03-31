@@ -25,6 +25,7 @@ model User {
   claims           Claim[]
   policies         Policy[]
   sessions         WorkSession[]
+  treasuryTransactions TreasuryTransaction[] @relation("TreasuryActionBy")
 }
 
 model OtpVerification {
@@ -114,6 +115,35 @@ model Claim {
   @@index([userId, status])
 }
 
+model Treasury {
+  id           String                @id @default(uuid())
+  name         String                @unique @default("PRIMARY_TREASURY")
+  balance      Int                   @default(0)
+  currency     String                @default("INR")
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  transactions TreasuryTransaction[]
+}
+
+model TreasuryTransaction {
+  id              String                    @id @default(uuid())
+  treasuryId      String
+  direction       TreasuryDirection
+  type            TreasuryTransactionType
+  amount          Int
+  balanceAfter    Int
+  referenceType   String?
+  referenceId     String?
+  note            String?
+  createdByUserId String?
+  createdAt       DateTime                  @default(now())
+  treasury        Treasury                  @relation(fields: [treasuryId], references: [id])
+  createdBy       User?                     @relation("TreasuryActionBy", fields: [createdByUserId], references: [id])
+
+  @@index([treasuryId, createdAt(sort: Desc)])
+  @@index([referenceType, referenceId])
+}
+
 enum Role {
   WORKER
   ADMIN
@@ -137,4 +167,16 @@ enum ClaimStatus {
   REVIEW
   REJECTED
   APPEALED
+}
+
+enum TreasuryDirection {
+  CREDIT
+  DEBIT
+}
+
+enum TreasuryTransactionType {
+  PREMIUM
+  PAYOUT
+  TOPUP
+  ADJUSTMENT
 }

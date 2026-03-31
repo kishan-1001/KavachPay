@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, X, User, Phone, MapPin, Bike, Briefcase, Wallet, LogOut, ShieldCheck, TrendingUp } from 'lucide-react';
 
@@ -16,6 +16,19 @@ const Dashboard: React.FC = () => {
   const [sessionHash, setSessionHash] = useState<string | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [latestClaim, setLatestClaim] = useState<any>(null);
+  const lastInteractionRef = useRef<number>(Date.now());
+  const interactionsCountRef = useRef<number>(0);
+  const hiddenSwitchCountRef = useRef<number>(0);
+  const [activityStats, setActivityStats] = useState<any>({
+    activeMinutes: 0,
+    heartbeatCount: 0,
+    sessionAgeMins: 0,
+    lastHeartbeatAgoMins: null,
+    avgHeartbeatGapMs: 0,
+    jitterMs: 0,
+    localInteractions: 0,
+    hiddenSwitches: 0,
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('kavachpay_token');
@@ -68,7 +81,62 @@ const Dashboard: React.FC = () => {
     const token = localStorage.getItem('kavachpay_token');
     if (!token) return;
 
+    const markInteraction = () => {
+      lastInteractionRef.current = Date.now();
+      interactionsCountRef.current += 1;
+    };
+
+    const activityEvents: Array<keyof WindowEventMap> = [
+      'mousemove',
+      'keydown',
+      'scroll',
+      'touchstart',
+      'click'
+    ];
+
+    for (const eventName of activityEvents) {
+      window.addEventListener(eventName, markInteraction, { passive: true });
+    }
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenSwitchCountRef.current += 1;
+      }
+      markInteraction();
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    const refreshActivityStats = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/session/activity-stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const remoteStats = await response.json();
+          setActivityStats({
+            ...remoteStats,
+            localInteractions: interactionsCountRef.current,
+            hiddenSwitches: hiddenSwitchCountRef.current,
+          });
+        }
+      } catch (err) {
+        console.error('Activity stats fetch failed', err);
+      }
+    };
+
     const sendHeartbeat = async () => {
+      const isRecentlyActive = Date.now() - lastInteractionRef.current <= 10 * 60 * 1000;
+
+      // Keep monitoring alive briefly in background after recent activity.
+      if (!isRecentlyActive) {
+        setWorkProofActive(false);
+        return;
+      }
+
       try {
         const response = await fetch('http://localhost:5000/api/session/heartbeat', {
           method: 'POST',
@@ -81,6 +149,7 @@ const Dashboard: React.FC = () => {
           setWorkProofActive(true);
           setSessionActiveMinutes(data.activeMinutes);
           setSessionHash(data.sessionHash);
+          await refreshActivityStats();
         } else {
           setWorkProofActive(false);
         }
@@ -91,11 +160,21 @@ const Dashboard: React.FC = () => {
     };
 
     // Fire initial heartbeat
+    markInteraction();
     sendHeartbeat();
+    refreshActivityStats();
 
     // Fire every 60 seconds (accelerated for hackathon demo)
     const interval = setInterval(sendHeartbeat, 60000);
-    return () => clearInterval(interval);
+    const statsInterval = setInterval(refreshActivityStats, 30000);
+    return () => {
+      clearInterval(interval);
+      clearInterval(statsInterval);
+      for (const eventName of activityEvents) {
+        window.removeEventListener(eventName, markInteraction);
+      }
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, []);
 
   const triggerSimulation = async () => {
@@ -212,6 +291,39 @@ const Dashboard: React.FC = () => {
                   Activate Coverage Now
                 </button>
               )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition">
+            <h3 className="text-lg font-bold text-slate-800">Live Activity Diagnostics (Web)</h3>
+            <p className="text-xs text-slate-500 mt-1">Prototype telemetry from browser + backend session tracker.</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                <p className="text-[10px] uppercase font-bold text-slate-400">Heartbeat Count</p>
+                <p className="text-xl font-black text-slate-800">{activityStats.heartbeatCount || 0}</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                <p className="text-[10px] uppercase font-bold text-slate-400">Session Age</p>
+                <p className="text-xl font-black text-slate-800">{activityStats.sessionAgeMins || 0} min</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                <p className="text-[10px] uppercase font-bold text-slate-400">Avg Beat Gap</p>
+                <p className="text-xl font-black text-slate-800">{activityStats.avgHeartbeatGapMs || 0} ms</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
+                <p className="text-[10px] uppercase font-bold text-slate-400">Timing Jitter</p>
+                <p className="text-xl font-black text-slate-800">{activityStats.jitterMs || 0} ms</p>
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4 mt-4">
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                <p className="text-[10px] uppercase font-bold text-blue-500">Local Interactions</p>
+                <p className="text-xl font-black text-blue-700">{activityStats.localInteractions || 0}</p>
+              </div>
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
+                <p className="text-[10px] uppercase font-bold text-amber-600">App Switches Detected</p>
+                <p className="text-xl font-black text-amber-700">{activityStats.hiddenSwitches || 0}</p>
+              </div>
             </div>
           </div>
 
