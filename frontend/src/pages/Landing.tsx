@@ -117,14 +117,15 @@ const Landing: React.FC = () => {
           <div className="flex items-center gap-2 text-xs sm:gap-3 sm:text-sm">
             <button
               type="button"
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold text-slate-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 sm:rounded-xl sm:px-5 sm:py-2.5"
+              onClick={() => navigate('/signin')}
+              className="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold text-slate-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 sm:rounded-xl sm:px-5 sm:py-2.5"
             >
               Login
             </button>
             <button
               type="button"
               onClick={() => navigate('/signup')}
-              className="rounded-lg bg-blue-900 px-3 py-2 font-semibold text-white shadow-md shadow-blue-900/35 transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-800 hover:shadow-lg sm:rounded-xl sm:px-5 sm:py-2.5"
+              className="cursor-pointer rounded-lg bg-blue-900 px-3 py-2 font-semibold text-white shadow-md shadow-blue-900/35 transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-800 hover:shadow-lg sm:rounded-xl sm:px-5 sm:py-2.5"
             >
               Sign Up
             </button>
@@ -168,13 +169,15 @@ const Landing: React.FC = () => {
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
-                className="w-full rounded-lg bg-blue-700 px-8 py-3 text-base font-semibold text-white shadow-md transition-colors duration-200 active:scale-95 hover:bg-blue-800 hover:shadow-lg sm:w-auto"
+                onClick={() => navigate('/signup')}
+                className="w-full rounded-lg bg-blue-700 px-8 py-3 text-base font-semibold text-white shadow-md transition-colors duration-200 active:scale-95 hover:bg-blue-800 hover:shadow-lg sm:w-auto cursor-pointer"
               >
                 Get Protected
               </button>
               <button
                 type="button"
-                className="w-full rounded-lg border-2 border-slate-300 bg-white px-8 py-3 text-base font-semibold text-slate-900 transition-all duration-200 active:scale-95 hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+                onClick={() => navigate('/howitworks')}
+                className="w-full rounded-lg border-2 border-slate-300 bg-white px-8 py-3 text-base font-semibold text-slate-900 transition-all duration-200 active:scale-95 hover:border-slate-400 hover:bg-slate-50 sm:w-auto cursor-pointer"
               >
                 How it Works
               </button>

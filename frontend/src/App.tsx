@@ -9,6 +9,7 @@ import Policy from './pages/Policy';
 import Admin from './pages/Admin';
 import Claims from './pages/Claims';
 import Payout from './pages/Payout';
+import HowItWorks from './pages/HowItWorks';
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/claims" element={<Claims />} />
           <Route path="/payout" element={<Payout />} />
+          <Route path="/howitworks" element={<HowItWorks />} />
         </Routes>
       </Router>
     </QueryClientProvider>
