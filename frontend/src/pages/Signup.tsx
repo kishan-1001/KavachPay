@@ -314,6 +314,7 @@ const Signup: React.FC = () => {
                       <option value="Mumbai">Mumbai</option>
                       <option value="Delhi">Delhi</option>
                       <option value="Bengaluru">Bengaluru</option>
+                      <option value="Chennai">Chennai</option>
                       <option value="Hyderabad">Hyderabad</option>
                     </select>
                   </div>
