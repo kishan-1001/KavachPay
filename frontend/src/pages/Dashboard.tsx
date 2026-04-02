@@ -129,7 +129,7 @@ const Dashboard: React.FC = () => {
     };
 
     const sendHeartbeat = async () => {
-      const isRecentlyActive = Date.now() - lastInteractionRef.current <= 20 * 60 * 1000;
+      const isRecentlyActive = Date.now() - lastInteractionRef.current <= 30 * 60 * 1000;
 
       // Keep monitoring alive briefly in background after recent activity.
       if (!isRecentlyActive) {
