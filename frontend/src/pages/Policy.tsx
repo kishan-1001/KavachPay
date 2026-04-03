@@ -8,14 +8,14 @@ declare global {
   }
 }
 
-const Policy = () =&gt; {
+const Policy = () => {
   const [loading, setLoading] = useState(false);
-  const [activePolicy, setActivePolicy] = useState&lt;any&gt;(null);
-  const [selectedPlan, setSelectedPlan] = useState&lt;string | null&gt;(null);
+  const [activePolicy, setActivePolicy] = useState<any>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() =&gt; {
-    const fetchPolicy = async () =&gt; {
+  useEffect(() => {
+    const fetchPolicy = async () => {
       const token = localStorage.getItem('kavachpay_token');
       if (!token) {
         navigate('/signin');
@@ -36,7 +36,7 @@ const Policy = () =&gt; {
     fetchPolicy();
   }, [navigate]);
 
-  const handleSelectPlan = async (planTier: string) =&gt; {
+  const handleSelectPlan = async (planTier: string) => {
     setLoading(true);
     setSelectedPlan(planTier);
     try {
@@ -128,44 +128,44 @@ const Policy = () =&gt; {
 
   if (activePolicy) {
     return (
-      &lt;main className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-6"&gt;
-        &lt;div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden"&gt;
-          &lt;div className="bg-stone-900 p-8 text-center"&gt;
-            &lt;div className="w-20 h-20 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center mb-4"&gt;
-              &lt;ShieldCheck className="w-10 h-10 text-emerald-400" /&gt;
-            &lt;/div&gt;
-            &lt;h2 className="text-2xl font-bold text-white mb-2"&gt;You&apos;re Protected&lt;/h2&gt;
-            &lt;p className="text-stone-400"&gt;Your policy is currently active&lt;/p&gt;
-          &lt;/div&gt;
+      <main className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden">
+          <div className="bg-stone-900 p-8 text-center">
+            <div className="w-20 h-20 mx-auto bg-emerald-500/20 rounded-full flex items-center justify-center mb-4">
+              <ShieldCheck className="w-10 h-10 text-emerald-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">You&apos;re Protected</h2>
+            <p className="text-stone-400">Your policy is currently active</p>
+          </div>
           
-          &lt;div className="p-8"&gt;
-            &lt;div className="space-y-4 mb-8"&gt;
-              &lt;div className="flex justify-between items-center py-3 border-b border-stone-100"&gt;
-                &lt;span className="text-stone-500"&gt;Plan Tier&lt;/span&gt;
-                &lt;span className="font-bold text-stone-900"&gt;{activePolicy.planTier}&lt;/span&gt;
-              &lt;/div&gt;
-              &lt;div className="flex justify-between items-center py-3 border-b border-stone-100"&gt;
-                &lt;span className="text-stone-500"&gt;Coverage&lt;/span&gt;
-                &lt;span className="font-bold text-emerald-600"&gt;Rs. {activePolicy.coverageAmount}&lt;/span&gt;
-              &lt;/div&gt;
-              &lt;div className="flex justify-between items-center py-3"&gt;
-                &lt;span className="text-stone-500"&gt;Status&lt;/span&gt;
-                &lt;span className="flex items-center gap-2 font-semibold text-emerald-600"&gt;
-                  &lt;div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"&gt;&lt;/div&gt;
+          <div className="p-8">
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between items-center py-3 border-b border-stone-100">
+                <span className="text-stone-500">Plan Tier</span>
+                <span className="font-bold text-stone-900">{activePolicy.planTier}</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-stone-100">
+                <span className="text-stone-500">Coverage</span>
+                <span className="font-bold text-emerald-600">Rs. {activePolicy.coverageAmount}</span>
+              </div>
+              <div className="flex justify-between items-center py-3">
+                <span className="text-stone-500">Status</span>
+                <span className="flex items-center gap-2 font-semibold text-emerald-600">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                   Active
-                &lt;/span&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
+                </span>
+              </div>
+            </div>
 
-            &lt;button 
-              onClick={() =&gt; navigate('/dashboard')}
+            <button 
+              onClick={() => navigate('/dashboard')}
               className="w-full bg-stone-900 text-white font-semibold py-3 rounded-xl hover:bg-stone-800 transition cursor-pointer"
-            &gt;
+            >
               Go to Dashboard
-            &lt;/button&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/main&gt;
+            </button>
+          </div>
+        </div>
+      </main>
     );
   }
 
@@ -222,116 +222,116 @@ const Policy = () =&gt; {
   ];
 
   return (
-    &lt;main className="min-h-screen bg-stone-50 text-stone-900"&gt;
+    <main className="min-h-screen bg-stone-50 text-stone-900">
       {/* Navigation */}
-      &lt;nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-stone-100"&gt;
-        &lt;div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-4"&gt;
-          &lt;button
-            onClick={() =&gt; navigate('/dashboard')}
+      <nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-stone-100">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center gap-4">
+          <button
+            onClick={() => navigate('/dashboard')}
             className="p-2 rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 hover:text-stone-700 transition cursor-pointer"
-          &gt;
-            &lt;ArrowLeft className="w-5 h-5" /&gt;
-          &lt;/button&gt;
-          &lt;div&gt;
-            &lt;h1 className="text-xl font-bold text-stone-900"&gt;Choose Your Plan&lt;/h1&gt;
-            &lt;p className="text-sm text-stone-500"&gt;Select protection that fits your needs&lt;/p&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/nav&gt;
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-stone-900">Choose Your Plan</h1>
+            <p className="text-sm text-stone-500">Select protection that fits your needs</p>
+          </div>
+        </div>
+      </nav>
 
-      &lt;div className="max-w-6xl mx-auto px-6 py-12"&gt;
+      <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Header */}
-        &lt;div className="text-center mb-12"&gt;
-          &lt;div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium mb-6"&gt;
-            &lt;ShieldCheck className="w-4 h-4" /&gt; Instant Weather Protection
-          &lt;/div&gt;
-          &lt;h2 className="text-3xl md:text-4xl font-bold text-stone-900 mb-4"&gt;Select Your Safety Net&lt;/h2&gt;
-          &lt;p className="text-lg text-stone-500 max-w-2xl mx-auto"&gt;
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium mb-6">
+            <ShieldCheck className="w-4 h-4" /> Instant Weather Protection
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Select Your Safety Net</h2>
+          <p className="text-lg text-stone-500 max-w-2xl mx-auto">
             Parametric coverage for weather and gig-work disruptions. Your income, secured automatically.
-          &lt;/p&gt;
-        &lt;/div&gt;
+          </p>
+        </div>
 
         {/* Plans Grid */}
-        &lt;div className="grid md:grid-cols-3 gap-6 lg:gap-8"&gt;
-          {plans.map((plan) =&gt; (
-            &lt;div 
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+          {plans.map((plan) => (
+            <div 
               key={plan.tier}
               className={`relative bg-white rounded-3xl p-8 border transition-all duration-300 flex flex-col ${
                 plan.popular 
                   ? 'border-emerald-200 shadow-xl shadow-emerald-500/10 scale-[1.02]' 
                   : 'border-stone-100 shadow-sm hover:shadow-md hover:border-stone-200'
               }`}
-            &gt;
-              {plan.popular &amp;&amp; (
-                &lt;div className="absolute top-0 right-6 -translate-y-1/2"&gt;
-                  &lt;span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full"&gt;
+            >
+              {plan.popular && (
+                <div className="absolute top-0 right-6 -translate-y-1/2">
+                  <span className="bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">
                     Most Popular
-                  &lt;/span&gt;
-                &lt;/div&gt;
+                  </span>
+                </div>
               )}
 
-              &lt;div className="mb-6"&gt;
-                &lt;h3 className="text-xl font-bold text-stone-900 mb-1"&gt;{plan.name}&lt;/h3&gt;
-                &lt;div className="flex items-baseline gap-1"&gt;
-                  &lt;span className="text-4xl font-bold text-stone-900"&gt;Rs. {plan.price}&lt;/span&gt;
-                  &lt;span className="text-stone-500"&gt;/{plan.period}&lt;/span&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-stone-900 mb-1">{plan.name}</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold text-stone-900">Rs. {plan.price}</span>
+                  <span className="text-stone-500">/{plan.period}</span>
+                </div>
+              </div>
               
-              &lt;p className="text-sm text-stone-500 pb-6 border-b border-stone-100 mb-6"&gt;{plan.description}&lt;/p&gt;
+              <p className="text-sm text-stone-500 pb-6 border-b border-stone-100 mb-6">{plan.description}</p>
               
-              &lt;div className="space-y-4 flex-grow mb-8"&gt;
-                {plan.features.map((feature, i) =&gt; (
-                  &lt;div key={i} className="flex items-center gap-3"&gt;
-                    &lt;div className={`w-8 h-8 rounded-lg bg-${feature.color}-100 flex items-center justify-center flex-shrink-0`}&gt;
-                      &lt;feature.icon className={`w-4 h-4 text-${feature.color}-600`} /&gt;
-                    &lt;/div&gt;
-                    &lt;span className="text-sm text-stone-700"&gt;{feature.text}&lt;/span&gt;
-                  &lt;/div&gt;
+              <div className="space-y-4 flex-grow mb-8">
+                {plan.features.map((feature, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg bg-${feature.color}-100 flex items-center justify-center flex-shrink-0`}>
+                      <feature.icon className={`w-4 h-4 text-${feature.color}-600`} />
+                    </div>
+                    <span className="text-sm text-stone-700">{feature.text}</span>
+                  </div>
                 ))}
-              &lt;/div&gt;
+              </div>
               
-              &lt;div className="bg-stone-50 rounded-xl p-4 mb-6"&gt;
-                &lt;div className="flex justify-between items-center text-sm"&gt;
-                  &lt;span className="text-stone-500"&gt;Coverage up to&lt;/span&gt;
-                  &lt;span className="font-bold text-stone-900"&gt;Rs. {plan.coverage}&lt;/span&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+              <div className="bg-stone-50 rounded-xl p-4 mb-6">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-stone-500">Coverage up to</span>
+                  <span className="font-bold text-stone-900">Rs. {plan.coverage}</span>
+                </div>
+              </div>
 
-              &lt;button 
-                onClick={() =&gt; handleSelectPlan(plan.tier)} 
+              <button 
+                onClick={() => handleSelectPlan(plan.tier)} 
                 disabled={loading}
                 className={`w-full font-semibold py-3.5 rounded-xl transition cursor-pointer disabled:opacity-70 disabled:cursor-wait ${plan.buttonStyle}`}
-              &gt;
-                {loading &amp;&amp; selectedPlan === plan.tier ? 'Processing...' : plan.buttonText}
-              &lt;/button&gt;
-            &lt;/div&gt;
+              >
+                {loading && selectedPlan === plan.tier ? 'Processing...' : plan.buttonText}
+              </button>
+            </div>
           ))}
-        &lt;/div&gt;
+        </div>
 
         {/* Trust Indicators */}
-        &lt;div className="mt-16 text-center"&gt;
-          &lt;div className="flex flex-wrap justify-center gap-8 text-sm text-stone-500"&gt;
-            &lt;div className="flex items-center gap-2"&gt;
-              &lt;Check className="w-4 h-4 text-emerald-500" /&gt;
-              &lt;span&gt;Instant UPI Payouts&lt;/span&gt;
-            &lt;/div&gt;
-            &lt;div className="flex items-center gap-2"&gt;
-              &lt;Check className="w-4 h-4 text-emerald-500" /&gt;
-              &lt;span&gt;No Paperwork&lt;/span&gt;
-            &lt;/div&gt;
-            &lt;div className="flex items-center gap-2"&gt;
-              &lt;Check className="w-4 h-4 text-emerald-500" /&gt;
-              &lt;span&gt;AI-Verified Claims&lt;/span&gt;
-            &lt;/div&gt;
-            &lt;div className="flex items-center gap-2"&gt;
-              &lt;Check className="w-4 h-4 text-emerald-500" /&gt;
-              &lt;span&gt;Cancel Anytime&lt;/span&gt;
-            &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-    &lt;/main&gt;
+        <div className="mt-16 text-center">
+          <div className="flex flex-wrap justify-center gap-8 text-sm text-stone-500">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-500" />
+              <span>Instant UPI Payouts</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-500" />
+              <span>No Paperwork</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-500" />
+              <span>AI-Verified Claims</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-500" />
+              <span>Cancel Anytime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 };
 

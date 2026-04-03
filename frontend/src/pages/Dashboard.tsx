@@ -7,8 +7,8 @@ import {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState&lt;any&gt;(null);
-  const [policy, setPolicy] = useState&lt;any&gt;(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [policy, setPolicy] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -16,13 +16,13 @@ const Dashboard: React.FC = () => {
   // Work-Proof Engine State
   const [workProofActive, setWorkProofActive] = useState(false);
   const [sessionActiveMinutes, setSessionActiveMinutes] = useState(0);
-  const [sessionHash, setSessionHash] = useState&lt;string | null&gt;(null);
+  const [sessionHash, setSessionHash] = useState<string | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
-  const [latestClaim, setLatestClaim] = useState&lt;any&gt;(null);
-  const lastInteractionRef = useRef&lt;number&gt;(Date.now());
-  const interactionsCountRef = useRef&lt;number&gt;(0);
-  const hiddenSwitchCountRef = useRef&lt;number&gt;(0);
-  const [activityStats, setActivityStats] = useState&lt;any&gt;({
+  const [latestClaim, setLatestClaim] = useState<any>(null);
+  const lastInteractionRef = useRef<number>(Date.now());
+  const interactionsCountRef = useRef<number>(0);
+  const hiddenSwitchCountRef = useRef<number>(0);
+  const [activityStats, setActivityStats] = useState<any>({
     activeMinutes: 0,
     heartbeatCount: 0,
     sessionAgeMins: 0,
@@ -85,7 +85,7 @@ const Dashboard: React.FC = () => {
       interactionsCountRef.current += 1;
     };
 
-    const activityEvents: Array&lt;keyof WindowEventMap&gt; = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    const activityEvents: Array<keyof WindowEventMap> = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
 
     for (const eventName of activityEvents) {
       window.addEventListener(eventName, markInteraction, { passive: true });
@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
     };
 
     const sendHeartbeat = async () => {
-      const isRecentlyActive = Date.now() - lastInteractionRef.current &lt;= 30 * 60 * 1000;
+      const isRecentlyActive = Date.now() - lastInteractionRef.current <= 30 * 60 * 1000;
       if (!isRecentlyActive) {
         setWorkProofActive(false);
         return;
@@ -190,475 +190,393 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      &lt;div className="min-h-screen bg-stone-50 flex items-center justify-center"&gt;
-        &lt;div className="flex flex-col items-center gap-4"&gt;
-          &lt;div className="w-12 h-12 border-4 border-stone-200 border-t-emerald-500 rounded-full animate-spin"&gt;&lt;/div&gt;
-          &lt;p className="text-stone-500 font-medium"&gt;Loading your dashboard...&lt;/p&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-stone-200 border-t-emerald-500 rounded-full animate-spin"></div>
+          <p className="text-stone-500 font-medium">Loading your dashboard...</p>
+        </div>
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      &lt;div className="min-h-screen bg-stone-50 flex items-center justify-center"&gt;
-        &lt;div className="text-center"&gt;
-          &lt;ShieldAlert className="w-16 h-16 text-rose-400 mx-auto mb-4" /&gt;
-          &lt;p className="text-rose-500 font-medium text-lg"&gt;Failed to load profile&lt;/p&gt;
-          &lt;button onClick={() =&gt; navigate('/signin')} className="mt-4 px-6 py-2 bg-stone-900 text-white rounded-full font-medium hover:bg-stone-800 transition cursor-pointer"&gt;
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="text-center">
+          <ShieldAlert className="w-16 h-16 text-rose-400 mx-auto mb-4" />
+          <p className="text-rose-500 font-medium text-lg">Failed to load profile</p>
+          <button onClick={() => navigate('/signin')} className="mt-4 px-6 py-2 bg-stone-900 text-white rounded-full font-medium hover:bg-stone-800 transition cursor-pointer">
             Sign In Again
-          &lt;/button&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
+          </button>
+        </div>
+      </div>
     );
   }
 
   return (
-    &lt;main className="min-h-screen bg-stone-50 text-stone-900"&gt;
+    <main className="min-h-screen bg-stone-50 text-stone-900">
       {/* Top Navigation */}
-      &lt;nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-stone-100"&gt;
-        &lt;div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"&gt;
-          &lt;button onClick={() =&gt; navigate('/')} className="flex items-center gap-2 cursor-pointer"&gt;
-            &lt;div className="w-9 h-9 bg-stone-900 rounded-xl flex items-center justify-center"&gt;
-              &lt;ShieldCheck className="w-5 h-5 text-emerald-400" /&gt;
-            &lt;/div&gt;
-            &lt;span className="text-xl font-bold tracking-tight"&gt;KavachPay&lt;/span&gt;
-          &lt;/button&gt;
+      <nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-stone-100">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <button onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer">
+            <div className="w-9 h-9 bg-stone-900 rounded-xl flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">KavachPay</span>
+          </button>
           
-          &lt;div className="flex items-center gap-3"&gt;
-            &lt;button className="p-2.5 rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 transition cursor-pointer"&gt;
-              &lt;Bell className="w-5 h-5" /&gt;
-            &lt;/button&gt;
-            &lt;button 
-              onClick={() =&gt; setIsProfileOpen(true)}
+          <div className="flex items-center gap-3">
+            <button className="p-2.5 rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 transition cursor-pointer">
+              <Bell className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => setIsProfileOpen(true)}
               className="flex items-center gap-3 bg-stone-100 hover:bg-stone-200 px-4 py-2 rounded-full transition cursor-pointer"
-            &gt;
-              &lt;div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"&gt;
-                &lt;User className="w-4 h-4" /&gt;
-              &lt;/div&gt;
-              &lt;span className="font-semibold text-stone-700 hidden sm:block"&gt;{profile.fullName.split(' ')[0]}&lt;/span&gt;
-            &lt;/button&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
-      &lt;/nav&gt;
+            >
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <User className="w-4 h-4" />
+              </div>
+              <span className="font-semibold text-stone-700 hidden sm:block">{profile.fullName.split(' ')[0]}</span>
+            </button>
+          </div>
+        </div>
+      </nav>
 
-      &lt;div className="max-w-6xl mx-auto px-6 py-8"&gt;
+      <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Welcome Section */}
-        &lt;section className="mb-8"&gt;
-          &lt;div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"&gt;
-            &lt;div&gt;
-              &lt;h1 className="text-3xl font-bold text-stone-900 mb-1"&gt;
+        <section className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-stone-900 mb-1">
                 Welcome back, {profile.fullName.split(' ')[0]}
-              &lt;/h1&gt;
-              &lt;p className="text-stone-500"&gt;Here&apos;s an overview of your protection status&lt;/p&gt;
-            &lt;/div&gt;
-            {policy &amp;&amp; (
-              &lt;div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full"&gt;
-                &lt;div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"&gt;&lt;/div&gt;
-                &lt;span className="text-sm font-semibold text-emerald-700"&gt;Policy Active&lt;/span&gt;
-              &lt;/div&gt;
+              </h1>
+              <p className="text-stone-500">Here&apos;s an overview of your protection status</p>
+            </div>
+            {policy && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span className="text-sm font-semibold text-emerald-700">Policy Active</span>
+              </div>
             )}
-          &lt;/div&gt;
-        &lt;/section&gt;
+          </div>
+        </section>
 
         {/* Stats Grid */}
-        &lt;section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"&gt;
-          &lt;div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm"&gt;
-            &lt;div className="flex items-center gap-3 mb-3"&gt;
-              &lt;div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center"&gt;
-                &lt;Activity className={`w-5 h-5 ${workProofActive ? 'text-emerald-600' : 'text-stone-400'}`} /&gt;
-              &lt;/div&gt;
-              &lt;div className={`w-2 h-2 rounded-full ${workProofActive ? 'bg-emerald-500 animate-pulse' : 'bg-stone-300'}`}&gt;&lt;/div&gt;
-            &lt;/div&gt;
-            &lt;p className="text-2xl font-bold text-stone-900"&gt;{sessionActiveMinutes} min&lt;/p&gt;
-            &lt;p className="text-sm text-stone-500"&gt;Active Session&lt;/p&gt;
-          &lt;/div&gt;
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <Activity className={`w-5 h-5 ${workProofActive ? 'text-emerald-600' : 'text-stone-400'}`} />
+              </div>
+              <div className={`w-2 h-2 rounded-full ${workProofActive ? 'bg-emerald-500 animate-pulse' : 'bg-stone-300'}`}></div>
+            </div>
+            <p className="text-2xl font-bold text-stone-900">{sessionActiveMinutes} min</p>
+            <p className="text-sm text-stone-500">Active Session</p>
+          </div>
 
-          &lt;div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm"&gt;
-            &lt;div className="flex items-center gap-3 mb-3"&gt;
-              &lt;div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"&gt;
-                &lt;Zap className="w-5 h-5 text-blue-600" /&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;p className="text-2xl font-bold text-stone-900"&gt;{activityStats.heartbeatCount || 0}&lt;/p&gt;
-            &lt;p className="text-sm text-stone-500"&gt;Heartbeats&lt;/p&gt;
-          &lt;/div&gt;
+          <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-blue-600" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-stone-900">{activityStats.heartbeatCount || 0}</p>
+            <p className="text-sm text-stone-500">Heartbeats</p>
+          </div>
 
-          &lt;div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm"&gt;
-            &lt;div className="flex items-center gap-3 mb-3"&gt;
-              &lt;div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"&gt;
-                &lt;Clock className="w-5 h-5 text-amber-600" /&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;p className="text-2xl font-bold text-stone-900"&gt;{activityStats.sessionAgeMins || 0} min&lt;/p&gt;
-            &lt;p className="text-sm text-stone-500"&gt;Session Age&lt;/p&gt;
-          &lt;/div&gt;
+          <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-stone-900">{activityStats.sessionAgeMins || 0} min</p>
+            <p className="text-sm text-stone-500">Session Age</p>
+          </div>
 
-          &lt;div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm"&gt;
-            &lt;div className="flex items-center gap-3 mb-3"&gt;
-              &lt;div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"&gt;
-                &lt;ShieldCheck className="w-5 h-5 text-purple-600" /&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;p className="text-2xl font-bold text-stone-900"&gt;{policy?.planTier || 'None'}&lt;/p&gt;
-            &lt;p className="text-sm text-stone-500"&gt;Plan Tier&lt;/p&gt;
-          &lt;/div&gt;
-        &lt;/section&gt;
+          <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-purple-600" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-stone-900">{policy?.planTier || 'None'}</p>
+            <p className="text-sm text-stone-500">Plan Tier</p>
+          </div>
+        </section>
 
         {/* Main Content Grid */}
-        &lt;div className="grid lg:grid-cols-3 gap-6"&gt;
+        <div className="grid lg:grid-cols-3 gap-6">
           {/* Work-Proof Protocol Card */}
-          &lt;div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-stone-100 shadow-sm"&gt;
-            &lt;div className="flex items-center justify-between mb-6"&gt;
-              &lt;div className="flex items-center gap-3"&gt;
-                &lt;div className="w-12 h-12 rounded-2xl bg-stone-900 flex items-center justify-center"&gt;
-                  &lt;Activity className="w-6 h-6 text-emerald-400" /&gt;
-                &lt;/div&gt;
-                &lt;div&gt;
-                  &lt;h2 className="text-lg font-bold text-stone-900"&gt;Work-Proof Protocol&lt;/h2&gt;
-                  &lt;p className="text-sm text-stone-500"&gt;Real-time activity verification&lt;/p&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
-              &lt;div className={`px-3 py-1.5 rounded-full text-xs font-bold ${workProofActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}&gt;
+          <div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-stone-100 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-stone-900 flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-stone-900">Work-Proof Protocol</h2>
+                  <p className="text-sm text-stone-500">Real-time activity verification</p>
+                </div>
+              </div>
+              <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${workProofActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
                 {workProofActive ? 'ACTIVE' : 'INACTIVE'}
-              &lt;/div&gt;
-            &lt;/div&gt;
+              </div>
+            </div>
 
-            {sessionHash &amp;&amp; (
-              &lt;div className="bg-stone-50 rounded-2xl p-4 mb-6"&gt;
-                &lt;p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2"&gt;Live Cryptographic Hash&lt;/p&gt;
-                &lt;p className="text-sm font-mono text-stone-600 break-all"&gt;{sessionHash}&lt;/p&gt;
-              &lt;/div&gt;
+            {sessionHash && (
+              <div className="bg-stone-50 rounded-2xl p-4 mb-6">
+                <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">Live Cryptographic Hash</p>
+                <p className="text-sm font-mono text-stone-600 break-all">{sessionHash}</p>
+              </div>
             )}
 
-            &lt;div className="grid grid-cols-2 sm:grid-cols-4 gap-4"&gt;
-              &lt;div className="bg-stone-50 rounded-xl p-4"&gt;
-                &lt;p className="text-xs font-semibold text-stone-400 uppercase mb-1"&gt;Beat Gap&lt;/p&gt;
-                &lt;p className="text-xl font-bold text-stone-900"&gt;{activityStats.avgHeartbeatGapMs || 0}ms&lt;/p&gt;
-              &lt;/div&gt;
-              &lt;div className="bg-stone-50 rounded-xl p-4"&gt;
-                &lt;p className="text-xs font-semibold text-stone-400 uppercase mb-1"&gt;Jitter&lt;/p&gt;
-                &lt;p className="text-xl font-bold text-stone-900"&gt;{activityStats.jitterMs || 0}ms&lt;/p&gt;
-              &lt;/div&gt;
-              &lt;div className="bg-blue-50 rounded-xl p-4"&gt;
-                &lt;p className="text-xs font-semibold text-blue-500 uppercase mb-1"&gt;Interactions&lt;/p&gt;
-                &lt;p className="text-xl font-bold text-blue-700"&gt;{activityStats.localInteractions || 0}&lt;/p&gt;
-              &lt;/div&gt;
-              &lt;div className="bg-amber-50 rounded-xl p-4"&gt;
-                &lt;p className="text-xs font-semibold text-amber-600 uppercase mb-1"&gt;App Switches&lt;/p&gt;
-                &lt;p className="text-xl font-bold text-amber-700"&gt;{activityStats.hiddenSwitches || 0}&lt;/p&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-          &lt;/div&gt;
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-stone-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-stone-400 uppercase mb-1">Beat Gap</p>
+                <p className="text-xl font-bold text-stone-900">{activityStats.avgHeartbeatGapMs || 0}ms</p>
+              </div>
+              <div className="bg-stone-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-stone-400 uppercase mb-1">Jitter</p>
+                <p className="text-xl font-bold text-stone-900">{activityStats.jitterMs || 0}ms</p>
+              </div>
+              <div className="bg-blue-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-blue-500 uppercase mb-1">Interactions</p>
+                <p className="text-xl font-bold text-blue-700">{activityStats.localInteractions || 0}</p>
+              </div>
+              <div className="bg-amber-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-amber-600 uppercase mb-1">App Switches</p>
+                <p className="text-xl font-bold text-amber-700">{activityStats.hiddenSwitches || 0}</p>
+              </div>
+            </div>
+          </div>
 
           {/* Policy Card */}
-          &lt;div className="bg-gradient-to-br from-stone-900 to-stone-800 rounded-3xl p-6 text-white"&gt;
-            &lt;div className="flex items-center gap-3 mb-6"&gt;
-              &lt;div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center"&gt;
-                &lt;ShieldCheck className="w-6 h-6 text-emerald-400" /&gt;
-              &lt;/div&gt;
-              &lt;div&gt;
-                &lt;h2 className="text-lg font-bold"&gt;Your Plan&lt;/h2&gt;
-                &lt;p className="text-sm text-stone-400"&gt;Protection details&lt;/p&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
+          <div className="bg-gradient-to-br from-stone-900 to-stone-800 rounded-3xl p-6 text-white">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                <ShieldCheck className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">Your Plan</h2>
+                <p className="text-sm text-stone-400">Protection details</p>
+              </div>
+            </div>
 
             {policy ? (
-              &lt;div className="space-y-4"&gt;
-                &lt;div className="flex justify-between items-center py-3 border-b border-white/10"&gt;
-                  &lt;span className="text-stone-400"&gt;Tier&lt;/span&gt;
-                  &lt;span className="font-bold text-emerald-400"&gt;{policy.planTier}&lt;/span&gt;
-                &lt;/div&gt;
-                &lt;div className="flex justify-between items-center py-3 border-b border-white/10"&gt;
-                  &lt;span className="text-stone-400"&gt;Coverage&lt;/span&gt;
-                  &lt;span className="font-bold"&gt;Rs. {policy.coverageAmount}&lt;/span&gt;
-                &lt;/div&gt;
-                &lt;div className="flex justify-between items-center py-3"&gt;
-                  &lt;span className="text-stone-400"&gt;Expires&lt;/span&gt;
-                  &lt;span className="font-medium"&gt;{new Date(policy.endDate).toLocaleDateString()}&lt;/span&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
+              <div className="space-y-4">
+                <div className="flex justify-between items-center py-3 border-b border-white/10">
+                  <span className="text-stone-400">Tier</span>
+                  <span className="font-bold text-emerald-400">{policy.planTier}</span>
+                </div>
+                <div className="flex justify-between items-center py-3 border-b border-white/10">
+                  <span className="text-stone-400">Coverage</span>
+                  <span className="font-bold">Rs. {policy.coverageAmount}</span>
+                </div>
+                <div className="flex justify-between items-center py-3">
+                  <span className="text-stone-400">Expires</span>
+                  <span className="font-medium">{new Date(policy.endDate).toLocaleDateString()}</span>
+                </div>
+              </div>
             ) : (
-              &lt;div className="text-center py-6"&gt;
-                &lt;p className="text-stone-400 mb-4"&gt;You are currently unprotected&lt;/p&gt;
-                &lt;button 
-                  onClick={() =&gt; navigate('/policy')}
+              <div className="text-center py-6">
+                <p className="text-stone-400 mb-4">You are currently unprotected</p>
+                <button 
+                  onClick={() => navigate('/policy')}
                   className="w-full bg-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-400 transition cursor-pointer"
-                &gt;
+                >
                   Get Protected
-                &lt;/button&gt;
-              &lt;/div&gt;
+                </button>
+              </div>
             )}
-          &lt;/div&gt;
-        &lt;/div&gt;
+          </div>
+        </div>
 
         {/* Quick Navigation */}
-        &lt;section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6"&gt;
-          &lt;button
-            onClick={() =&gt; navigate('/claims')}
+        <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+          <button
+            onClick={() => navigate('/claims')}
             className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-emerald-200 hover:shadow-md transition text-left cursor-pointer"
-          &gt;
-            &lt;div className="flex items-center justify-between"&gt;
-              &lt;div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center group-hover:bg-emerald-200 transition"&gt;
-                &lt;ShieldCheck className="w-6 h-6 text-emerald-600" /&gt;
-              &lt;/div&gt;
-              &lt;ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-emerald-500 transition" /&gt;
-            &lt;/div&gt;
-            &lt;h3 className="text-base font-bold text-stone-900 mt-4"&gt;Claim History&lt;/h3&gt;
-            &lt;p className="text-sm text-stone-500 mt-1"&gt;View all your claims&lt;/p&gt;
-          &lt;/button&gt;
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center group-hover:bg-emerald-200 transition">
+                <ShieldCheck className="w-6 h-6 text-emerald-600" />
+              </div>
+              <ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-emerald-500 transition" />
+            </div>
+            <h3 className="text-base font-bold text-stone-900 mt-4">Claim History</h3>
+            <p className="text-sm text-stone-500 mt-1">View all your claims</p>
+          </button>
 
-          &lt;button
-            onClick={() =&gt; navigate('/payout')}
+          <button
+            onClick={() => navigate('/payout')}
             className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-blue-200 hover:shadow-md transition text-left cursor-pointer"
-          &gt;
-            &lt;div className="flex items-center justify-between"&gt;
-              &lt;div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition"&gt;
-                &lt;TrendingUp className="w-6 h-6 text-blue-600" /&gt;
-              &lt;/div&gt;
-              &lt;ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-blue-500 transition" /&gt;
-            &lt;/div&gt;
-            &lt;h3 className="text-base font-bold text-stone-900 mt-4"&gt;Payout History&lt;/h3&gt;
-            &lt;p className="text-sm text-stone-500 mt-1"&gt;Track your payouts&lt;/p&gt;
-          &lt;/button&gt;
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+              </div>
+              <ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-blue-500 transition" />
+            </div>
+            <h3 className="text-base font-bold text-stone-900 mt-4">Payout History</h3>
+            <p className="text-sm text-stone-500 mt-1">Track your payouts</p>
+          </button>
 
-          &lt;button
-            onClick={() =&gt; navigate('/policy')}
+          <button
+            onClick={() => navigate('/policy')}
             className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-purple-200 hover:shadow-md transition text-left cursor-pointer"
-          &gt;
-            &lt;div className="flex items-center justify-between"&gt;
-              &lt;div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition"&gt;
-                &lt;Settings className="w-6 h-6 text-purple-600" /&gt;
-              &lt;/div&gt;
-              &lt;ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-purple-500 transition" /&gt;
-            &lt;/div&gt;
-            &lt;h3 className="text-base font-bold text-stone-900 mt-4"&gt;Manage Policy&lt;/h3&gt;
-            &lt;p className="text-sm text-stone-500 mt-1"&gt;View or upgrade plan&lt;/p&gt;
-          &lt;/button&gt;
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition">
+                <Wallet className="w-6 h-6 text-purple-600" />
+              </div>
+              <ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-purple-500 transition" />
+            </div>
+            <h3 className="text-base font-bold text-stone-900 mt-4">Manage Policy</h3>
+            <p className="text-sm text-stone-500 mt-1">View or upgrade</p>
+          </button>
 
-          &lt;button
-            onClick={() =&gt; navigate('/how-it-works')}
-            className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-amber-200 hover:shadow-md transition text-left cursor-pointer"
-          &gt;
-            &lt;div className="flex items-center justify-between"&gt;
-              &lt;div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition"&gt;
-                &lt;Cloud className="w-6 h-6 text-amber-600" /&gt;
-              &lt;/div&gt;
-              &lt;ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-amber-500 transition" /&gt;
-            &lt;/div&gt;
-            &lt;h3 className="text-base font-bold text-stone-900 mt-4"&gt;How It Works&lt;/h3&gt;
-            &lt;p className="text-sm text-stone-500 mt-1"&gt;Learn about KavachPay&lt;/p&gt;
-          &lt;/button&gt;
-        &lt;/section&gt;
+          <button
+            onClick={triggerSimulation}
+            disabled={isSimulating || !policy}
+            className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-amber-200 hover:shadow-md transition text-left cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition">
+                <Cloud className="w-6 h-6 text-amber-600" />
+              </div>
+              <ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-amber-500 transition" />
+            </div>
+            <h3 className="text-base font-bold text-stone-900 mt-4">
+              {isSimulating ? 'Simulating...' : 'Test Disruption'}
+            </h3>
+            <p className="text-sm text-stone-500 mt-1">Simulate weather event</p>
+          </button>
+        </section>
 
-        {/* Latest Claim Result */}
-        {latestClaim &amp;&amp; (
-          &lt;section className="mt-6"&gt;
-            &lt;div className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden"&gt;
-              &lt;div className="bg-stone-900 px-6 py-4 flex items-center justify-between"&gt;
-                &lt;div className="flex items-center gap-3"&gt;
-                  &lt;ShieldCheck className="w-5 h-5 text-emerald-400" /&gt;
-                  &lt;h3 className="font-bold text-white"&gt;Latest AI Adjudication&lt;/h3&gt;
-                &lt;/div&gt;
-                &lt;button onClick={() =&gt; setLatestClaim(null)} className="text-stone-400 hover:text-white transition cursor-pointer"&gt;
-                  &lt;X className="w-5 h-5" /&gt;
-                &lt;/button&gt;
-              &lt;/div&gt;
-              
-              &lt;div className="p-6 grid md:grid-cols-2 gap-8"&gt;
-                &lt;div className="space-y-4"&gt;
-                  &lt;div&gt;
-                    &lt;div className="flex items-center justify-between text-sm mb-2"&gt;
-                      &lt;span className="font-semibold text-stone-500 uppercase tracking-wider"&gt;ML Confidence&lt;/span&gt;
-                      &lt;span className="font-bold text-emerald-600"&gt;{Math.round((1 - latestClaim.fraudScore) * 100)}%&lt;/span&gt;
-                    &lt;/div&gt;
-                    &lt;div className="w-full bg-stone-100 h-3 rounded-full overflow-hidden"&gt;
-                      &lt;div 
-                        className="bg-emerald-500 h-full rounded-full transition-all duration-1000"
-                        style={{ width: `${(1 - latestClaim.fraudScore) * 100}%` }}
-                      /&gt;
-                    &lt;/div&gt;
-                  &lt;/div&gt;
-                  
-                  &lt;div className="grid grid-cols-2 gap-4"&gt;
-                    &lt;div className="bg-stone-50 p-4 rounded-xl text-center"&gt;
-                      &lt;p className="text-xs font-semibold text-stone-400 uppercase mb-1"&gt;Work-Proof&lt;/p&gt;
-                      &lt;p className="text-xl font-bold text-emerald-600"&gt;{latestClaim.workProofScore}&lt;/p&gt;
-                    &lt;/div&gt;
-                    &lt;div className="bg-stone-50 p-4 rounded-xl text-center"&gt;
-                      &lt;p className="text-xs font-semibold text-stone-400 uppercase mb-1"&gt;Fraud Risk&lt;/p&gt;
-                      &lt;p className="text-xl font-bold text-rose-500"&gt;{latestClaim.fraudScore}&lt;/p&gt;
-                    &lt;/div&gt;
-                  &lt;/div&gt;
-                &lt;/div&gt;
-
-                &lt;div className="bg-stone-50 rounded-2xl p-5 space-y-3"&gt;
-                  &lt;h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest"&gt;Signal Breakdown&lt;/h4&gt;
-                  
-                  &lt;div className="flex justify-between items-center text-sm"&gt;
-                    &lt;span className="flex items-center gap-2 text-stone-600"&gt;
-                      &lt;div className="w-2 h-2 rounded-full bg-emerald-500"&gt;&lt;/div&gt; IP Location
-                    &lt;/span&gt;
-                    &lt;span className="font-bold text-emerald-600"&gt;MATCHED&lt;/span&gt;
-                  &lt;/div&gt;
-                  
-                  &lt;div className="flex justify-between items-center text-sm"&gt;
-                    &lt;span className="flex items-center gap-2 text-stone-600"&gt;
-                      &lt;div className={`w-2 h-2 rounded-full ${latestClaim.isChainValid ? 'bg-emerald-500' : 'bg-rose-500'}`}&gt;&lt;/div&gt; Hash Chain
-                    &lt;/span&gt;
-                    &lt;span className={`font-bold ${latestClaim.isChainValid ? 'text-emerald-600' : 'text-rose-500'}`}&gt;
-                      {latestClaim.isChainValid ? 'VALID' : 'INVALID'}
-                    &lt;/span&gt;
-                  &lt;/div&gt;
-                  
-                  &lt;div className="flex justify-between items-center text-sm"&gt;
-                    &lt;span className="flex items-center gap-2 text-stone-600"&gt;
-                      &lt;div className={`w-2 h-2 rounded-full ${latestClaim.behavioralScore &gt; 0.6 ? 'bg-emerald-500' : 'bg-amber-500'}`}&gt;&lt;/div&gt; Behavioral
-                    &lt;/span&gt;
-                    &lt;span className={`font-bold ${latestClaim.behavioralScore &gt; 0.6 ? 'text-emerald-600' : 'text-amber-500'}`}&gt;
-                      {latestClaim.behavioralScore &gt; 0.8 ? 'HUMAN' : latestClaim.behavioralScore &gt; 0.4 ? 'STABLE' : 'BOT'}
-                    &lt;/span&gt;
-                  &lt;/div&gt;
-
-                  &lt;div className="pt-4 border-t border-stone-200 text-center"&gt;
-                    &lt;p className="text-xs text-stone-400 mb-1"&gt;Final Decision&lt;/p&gt;
-                    &lt;p className={`text-xl font-bold ${latestClaim.status === 'PAID' ? 'text-emerald-600' : 'text-amber-500'}`}&gt;
-                      {latestClaim.status === 'PAID' ? `Rs. ${latestClaim.payoutAmount} PAID` : 'PENDING REVIEW'}
-                    &lt;/p&gt;
-                  &lt;/div&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-          &lt;/section&gt;
+        {/* Latest Claim */}
+        {latestClaim && (
+          <section className="mt-6">
+            <div className="bg-white rounded-2xl p-6 border border-stone-100 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-stone-900">Latest Claim</h3>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  latestClaim.status === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
+                  latestClaim.status === 'REVIEW' ? 'bg-amber-100 text-amber-700' :
+                  'bg-rose-100 text-rose-700'
+                }`}>
+                  {latestClaim.status}
+                </span>
+              </div>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Trigger</p>
+                  <p className="text-sm font-medium text-stone-700">{latestClaim.triggerEvent.replace(/_/g, ' ')}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Amount</p>
+                  <p className="text-sm font-bold text-emerald-600">Rs. {latestClaim.payoutAmount}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-stone-400 uppercase font-semibold mb-1">Date</p>
+                  <p className="text-sm font-medium text-stone-700">{new Date(latestClaim.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+          </section>
         )}
-      &lt;/div&gt;
+      </div>
 
-      {/* Floating Action Button */}
-      &lt;div className="fixed bottom-6 right-6 z-40"&gt;
-        &lt;button 
-          onClick={triggerSimulation}
-          disabled={isSimulating}
-          className={`group flex items-center gap-3 bg-stone-900 text-white px-6 py-4 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer font-semibold ${isSimulating ? 'opacity-80' : ''}`}
-        &gt;
-          &lt;ShieldAlert className={`w-5 h-5 ${isSimulating ? 'animate-pulse text-amber-400' : 'text-emerald-400'}`} /&gt;
-          &lt;span className="text-sm"&gt;{isSimulating ? 'Analyzing...' : 'Analyze Risk'}&lt;/span&gt;
-        &lt;/button&gt;
-      &lt;/div&gt;
+      {/* Profile Sidebar */}
+      {isProfileOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsProfileOpen(false)}></div>
+          <div className="relative w-full max-w-sm bg-white shadow-2xl h-full overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-bold text-stone-900">Profile</h2>
+                <button onClick={() => setIsProfileOpen(false)} className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 transition cursor-pointer">
+                  <X className="w-5 h-5 text-stone-500" />
+                </button>
+              </div>
 
-      {/* Profile Drawer Overlay */}
-      {isProfileOpen &amp;&amp; (
-        &lt;div 
-          className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-40 transition-opacity" 
-          onClick={() =&gt; setIsProfileOpen(false)}
-        /&gt;
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                  <User className="w-10 h-10 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-bold text-stone-900">{profile.fullName}</h3>
+                <p className="text-stone-500">{profile.email}</p>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-xl">
+                  <Phone className="w-5 h-5 text-stone-400" />
+                  <div>
+                    <p className="text-xs text-stone-400 uppercase font-semibold">Phone</p>
+                    <p className="text-sm font-medium text-stone-700">{profile.phone}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-xl">
+                  <MapPin className="w-5 h-5 text-stone-400" />
+                  <div>
+                    <p className="text-xs text-stone-400 uppercase font-semibold">City</p>
+                    <p className="text-sm font-medium text-stone-700">{profile.city}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-xl">
+                  <Briefcase className="w-5 h-5 text-stone-400" />
+                  <div>
+                    <p className="text-xs text-stone-400 uppercase font-semibold">Platform</p>
+                    <p className="text-sm font-medium text-stone-700">{profile.gigPlatform}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-stone-50 rounded-xl">
+                  <Bike className="w-5 h-5 text-stone-400" />
+                  <div>
+                    <p className="text-xs text-stone-400 uppercase font-semibold">Vehicle</p>
+                    <p className="text-sm font-medium text-stone-700">{profile.vehicleType}</p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 font-semibold rounded-xl hover:bg-rose-100 transition cursor-pointer"
+              >
+                <LogOut className="w-5 h-5" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Profile Drawer */}
-      &lt;div className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out flex flex-col ${isProfileOpen ? 'translate-x-0' : 'translate-x-full'}`}&gt;
-        &lt;div className="bg-stone-900 p-8 text-center relative"&gt;
-          &lt;button onClick={() =&gt; setIsProfileOpen(false)} className="absolute top-4 left-4 text-stone-400 hover:text-white transition cursor-pointer"&gt;
-            &lt;X className="w-6 h-6" /&gt;
-          &lt;/button&gt;
-          
-          &lt;div className="w-20 h-20 mx-auto bg-stone-800 rounded-full flex items-center justify-center border-2 border-emerald-500/30 mb-4"&gt;
-            &lt;User className="w-10 h-10 text-stone-300" /&gt;
-          &lt;/div&gt;
-          &lt;h3 className="text-xl font-bold text-white"&gt;{profile.fullName}&lt;/h3&gt;
-          &lt;div className="flex items-center justify-center mt-2"&gt;
-            {profile.trustScore &gt;= 0.8 ? (
-              &lt;div className="bg-emerald-500/20 px-3 py-1 rounded-full flex items-center gap-2 text-xs font-semibold text-emerald-400 border border-emerald-500/30"&gt;
-                &lt;ShieldCheck className="w-3.5 h-3.5" /&gt; High Trust Score
-              &lt;/div&gt;
-            ) : (
-              &lt;span className="text-stone-400 text-sm"&gt;New Worker Profile&lt;/span&gt;
-            )}
-          &lt;/div&gt;
-        &lt;/div&gt;
-
-        &lt;div className="flex-grow p-6 space-y-3 overflow-y-auto bg-stone-50"&gt;
-          {policy &amp;&amp; (
-            &lt;div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-between"&gt;
-              &lt;div className="flex items-center gap-3"&gt;
-                &lt;div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"&gt;
-                  &lt;ShieldCheck className="w-5 h-5" /&gt;
-                &lt;/div&gt;
-                &lt;div&gt;
-                  &lt;p className="text-xs font-semibold text-emerald-600 uppercase"&gt;Active Policy&lt;/p&gt;
-                  &lt;p className="text-sm font-bold text-emerald-800"&gt;{policy.planTier} Tier&lt;/p&gt;
-                &lt;/div&gt;
-              &lt;/div&gt;
-              &lt;div className="text-right"&gt;
-                &lt;p className="text-xs text-emerald-600"&gt;Coverage&lt;/p&gt;
-                &lt;p className="text-sm font-bold text-emerald-800"&gt;Rs. {policy.coverageAmount}&lt;/p&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-          )}
-
-          {[
-            { icon: MapPin, label: 'City', value: profile.city, color: 'blue' },
-            { icon: Briefcase, label: 'Platform', value: profile.deliveryPlatform, color: 'orange' },
-            { icon: Bike, label: 'Vehicle', value: profile.vehicleType, color: 'emerald' },
-            { icon: Wallet, label: 'UPI ID', value: profile.upiId || 'Not provided', color: 'purple' },
-            { icon: Phone, label: 'Contact', value: profile.phoneNumber || profile.email, color: 'stone' },
-          ].map((item, i) =&gt; (
-            &lt;div key={i} className="p-3 rounded-xl bg-white border border-stone-100 flex items-center gap-4"&gt;
-              &lt;div className={`w-10 h-10 rounded-full bg-${item.color}-50 flex items-center justify-center text-${item.color}-600`}&gt;
-                &lt;item.icon className="w-5 h-5" /&gt;
-              &lt;/div&gt;
-              &lt;div&gt;
-                &lt;p className="text-xs font-semibold text-stone-400 uppercase"&gt;{item.label}&lt;/p&gt;
-                &lt;p className="text-sm font-medium text-stone-800 capitalize"&gt;{item.value}&lt;/p&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-          ))}
-        &lt;/div&gt;
-
-        &lt;div className="p-6 border-t border-stone-100 bg-white"&gt;
-          &lt;button 
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-rose-600 font-semibold hover:bg-rose-50 border border-rose-100 transition cursor-pointer"
-          &gt;
-            &lt;LogOut className="w-5 h-5" /&gt;
-            Sign Out
-          &lt;/button&gt;
-        &lt;/div&gt;
-      &lt;/div&gt;
-
-      {/* Onboarding Modal */}
-      {showModal &amp;&amp; (
-        &lt;div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4"&gt;
-          &lt;div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"&gt;
-            &lt;div className="bg-gradient-to-r from-rose-500 to-orange-500 p-8 flex flex-col items-center"&gt;
-              &lt;div className="bg-white/20 p-4 rounded-full mb-4"&gt;
-                &lt;ShieldAlert className="w-10 h-10 text-white" /&gt;
-              &lt;/div&gt;
-              &lt;h3 className="text-2xl font-bold text-white text-center"&gt;Your Income is at Risk&lt;/h3&gt;
-            &lt;/div&gt;
-            
-            &lt;div className="p-8 text-center"&gt;
-              &lt;p className="text-stone-600 mb-6 leading-relaxed"&gt;
-                You are currently &lt;span className="font-bold text-rose-500"&gt;unprotected&lt;/span&gt; against weather disruptions and gig work emergencies.
-              &lt;/p&gt;
-              
-              &lt;div className="flex flex-col gap-3"&gt;
-                &lt;button 
-                  onClick={() =&gt; navigate('/policy')}
-                  className="w-full px-6 py-3 rounded-xl font-semibold text-white bg-stone-900 hover:bg-stone-800 transition cursor-pointer"
-                &gt;
-                  Get Protected Now
-                &lt;/button&gt;
-                &lt;button 
-                  onClick={() =&gt; setShowModal(false)}
-                  className="w-full px-6 py-3 rounded-xl font-medium text-stone-500 hover:bg-stone-100 transition cursor-pointer"
-                &gt;
-                  Maybe Later
-                &lt;/button&gt;
-              &lt;/div&gt;
-            &lt;/div&gt;
-          &lt;/div&gt;
-        &lt;/div&gt;
+      {/* Policy Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
+          <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center">
+            <div className="w-16 h-16 mx-auto bg-amber-100 rounded-full flex items-center justify-center mb-6">
+              <ShieldAlert className="w-8 h-8 text-amber-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-stone-900 mb-2">No Active Policy</h3>
+            <p className="text-stone-500 mb-8">You need an active policy to access weather protection and instant payouts.</p>
+            <button
+              onClick={() => navigate('/policy')}
+              className="w-full bg-stone-900 text-white font-semibold py-3.5 rounded-xl hover:bg-stone-800 transition cursor-pointer"
+            >
+              Activate Policy
+            </button>
+            <button
+              onClick={() => setShowModal(false)}
+              className="w-full mt-3 text-stone-500 font-medium py-3 hover:text-stone-700 transition cursor-pointer"
+            >
+              Maybe Later
+            </button>
+          </div>
+        </div>
       )}
-    &lt;/main&gt;
+    </main>
   );
 };
 
