@@ -1,32 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ShieldCheck, 
-  Users, 
-  Wallet, 
-  TrendingUp, 
-  Search, 
-  Filter, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle,
-  ChevronRight,
-  MapPin,
-  Clock,
-  ArrowLeft
+  ShieldCheck, Users, Wallet, TrendingUp, CheckCircle, XCircle, AlertTriangle,
+  ChevronRight, MapPin, ArrowLeft, Settings, RefreshCw, Plus, Clock
 } from 'lucide-react';
 
-const Admin: React.FC = () => {
+const Admin: React.FC = () =&gt; {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<any>(null);
-  const [claims, setClaims] = useState<any[]>([]);
-  const [treasury, setTreasury] = useState<any>(null);
+  const [stats, setStats] = useState&lt;any&gt;(null);
+  const [claims, setClaims] = useState&lt;any[]&gt;([]);
+  const [treasury, setTreasury] = useState&lt;any&gt;(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [topupAmount, setTopupAmount] = useState(25000);
-  const [topupNote, setTopupNote] = useState('Hackathon demo top-up');
+  const [topupNote, setTopupNote] = useState('Demo top-up');
 
-  useEffect(() => {
+  useEffect(() =&gt; {
     const token = localStorage.getItem('kavachpay_token');
     const userStr = localStorage.getItem('kavachpay_user');
     const user = userStr ? JSON.parse(userStr) : null;
@@ -36,19 +25,15 @@ const Admin: React.FC = () => {
       return;
     }
 
-    const fetchAdminData = async () => {
+    const fetchAdminData = async () =&gt; {
       try {
-        const statsRes = await fetch('http://localhost:5000/api/admin/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const claimsRes = await fetch('http://localhost:5000/api/admin/claims', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const treasuryRes = await fetch('http://localhost:5000/api/admin/treasury', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const [statsRes, claimsRes, treasuryRes] = await Promise.all([
+          fetch('http://localhost:5000/api/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('http://localhost:5000/api/admin/claims', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('http://localhost:5000/api/admin/treasury', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
 
-        if (statsRes.ok && claimsRes.ok && treasuryRes.ok) {
+        if (statsRes.ok &amp;&amp; claimsRes.ok &amp;&amp; treasuryRes.ok) {
           setStats(await statsRes.json());
           setClaims(await claimsRes.json());
           setTreasury(await treasuryRes.json());
@@ -63,46 +48,36 @@ const Admin: React.FC = () => {
     fetchAdminData();
   }, [navigate]);
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (id: string, status: string) =&gt; {
     const token = localStorage.getItem('kavachpay_token');
     try {
       const res = await fetch(`http://localhost:5000/api/admin/claims/${id}/status`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status, reviewerNotes: 'Manual Admin override.' })
       });
       if (res.ok) {
-        // Refresh local state
-        setClaims(claims.map(c => c.id === id ? { ...c, status } : c));
+        setClaims(claims.map(c =&gt; c.id === id ? { ...c, status } : c));
       }
     } catch (err) {
       console.error('Update status failed', err);
     }
   };
 
-  const handleTopupTreasury = async () => {
+  const handleTopupTreasury = async () =&gt; {
     const token = localStorage.getItem('kavachpay_token');
     try {
       const res = await fetch('http://localhost:5000/api/admin/treasury/topup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ amount: topupAmount, note: topupNote })
       });
 
       if (res.ok) {
-        const statsRes = await fetch('http://localhost:5000/api/admin/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const treasuryRes = await fetch('http://localhost:5000/api/admin/treasury', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-
+        const [statsRes, treasuryRes] = await Promise.all([
+          fetch('http://localhost:5000/api/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('http://localhost:5000/api/admin/treasury', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
         if (statsRes.ok) setStats(await statsRes.json());
         if (treasuryRes.ok) setTreasury(await treasuryRes.json());
       }
@@ -111,370 +86,357 @@ const Admin: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-blue-400 font-bold animate-pulse">Initializing Administrative Secure Access...</div>;
+  if (loading) {
+    return (
+      &lt;div className="min-h-screen bg-stone-900 flex items-center justify-center"&gt;
+        &lt;div className="flex flex-col items-center gap-4"&gt;
+          &lt;div className="w-12 h-12 border-4 border-stone-700 border-t-emerald-500 rounded-full animate-spin"&gt;&lt;/div&gt;
+          &lt;p className="text-stone-400 font-medium"&gt;Loading admin console...&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
 
-  const filteredClaims = claims.filter(c => activeTab === 'all' || c.status === activeTab);
+  const filteredClaims = claims.filter(c =&gt; activeTab === 'all' || c.status === activeTab);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Admin Navbar */}
-      <nav className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition cursor-pointer">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-xl font-black tracking-tighter text-blue-500">KAVACH<span className="text-white">PAY</span> <span className="text-slate-500 text-sm ml-2 font-mono uppercase tracking-widest">v2.0 Admin</span></h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-           <div className="flex flex-col items-end">
-             <p className="text-xs font-bold text-slate-400">Security Level</p>
-             <p className="text-[10px] font-black text-emerald-500 tracking-[3px] uppercase">Ultra Secure</p>
-           </div>
-           <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center">
-             <ShieldCheck className="w-6 h-6 text-blue-400" />
-           </div>
-        </div>
-      </nav>
+    &lt;div className="min-h-screen bg-stone-950 text-stone-100"&gt;
+      {/* Admin Navigation */}
+      &lt;nav className="sticky top-0 z-30 bg-stone-900/80 backdrop-blur-xl border-b border-stone-800"&gt;
+        &lt;div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between"&gt;
+          &lt;div className="flex items-center gap-4"&gt;
+            &lt;button onClick={() =&gt; navigate('/dashboard')} className="p-2 rounded-xl bg-stone-800 text-stone-400 hover:bg-stone-700 hover:text-white transition cursor-pointer"&gt;
+              &lt;ArrowLeft className="w-5 h-5" /&gt;
+            &lt;/button&gt;
+            &lt;div className="flex items-center gap-3"&gt;
+              &lt;div className="w-10 h-10 bg-stone-800 rounded-xl flex items-center justify-center"&gt;
+                &lt;ShieldCheck className="w-5 h-5 text-emerald-400" /&gt;
+              &lt;/div&gt;
+              &lt;div&gt;
+                &lt;h1 className="text-lg font-bold"&gt;KavachPay Admin&lt;/h1&gt;
+                &lt;p className="text-xs text-stone-500"&gt;System Control Panel&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div className="flex items-center gap-3"&gt;
+            &lt;div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full"&gt;
+              &lt;div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"&gt;&lt;/div&gt;
+              &lt;span className="text-xs font-semibold text-emerald-400"&gt;System Online&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;button className="p-2 rounded-xl bg-stone-800 text-stone-400 hover:bg-stone-700 transition cursor-pointer"&gt;
+              &lt;Settings className="w-5 h-5" /&gt;
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/nav&gt;
 
-      <main className="flex-grow p-6 lg:p-10 space-y-8 max-w-7xl mx-auto w-full">
-        {/* Top Intelligence Cards */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl hover:border-blue-500/30 transition group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-500 group-hover:scale-110 transition">
-                <Users className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">+12% growth</span>
-            </div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Active Workers</p>
-            <p className="text-3xl font-black mt-1">{stats?.totalUsers || 0}</p>
-          </div>
+      &lt;main className="max-w-7xl mx-auto px-6 py-8 space-y-8"&gt;
+        {/* Stats Grid */}
+        &lt;section className="grid grid-cols-2 lg:grid-cols-5 gap-4"&gt;
+          {[
+            { icon: Users, label: 'Active Workers', value: stats?.totalUsers || 0, color: 'blue', badge: '+12%' },
+            { icon: ShieldCheck, label: 'Active Policies', value: stats?.activePolicies || 0, color: 'emerald', badge: 'In Force' },
+            { icon: Wallet, label: 'Claims Paid', value: `Rs. ${stats?.totalPayouts?.toLocaleString() || 0}`, color: 'amber', badge: 'INR' },
+            { icon: AlertTriangle, label: 'Fraud Rate', value: `${stats?.fraudRate || 0}%`, color: 'rose', badge: 'Risk' },
+            { icon: Wallet, label: 'Treasury', value: `Rs. ${stats?.treasury?.balance?.toLocaleString() || 0}`, color: 'cyan', badge: 'Balance' },
+          ].map((stat, i) =&gt; (
+            &lt;div key={i} className="bg-stone-900 border border-stone-800 rounded-2xl p-5 hover:border-stone-700 transition group"&gt;
+              &lt;div className="flex items-center justify-between mb-4"&gt;
+                &lt;div className={`w-10 h-10 rounded-xl bg-${stat.color}-500/10 flex items-center justify-center group-hover:scale-110 transition`}&gt;
+                  &lt;stat.icon className={`w-5 h-5 text-${stat.color}-400`} /&gt;
+                &lt;/div&gt;
+                &lt;span className={`text-[10px] font-bold text-${stat.color}-400 uppercase tracking-wider`}&gt;{stat.badge}&lt;/span&gt;
+              &lt;/div&gt;
+              &lt;p className="text-xs font-semibold text-stone-500 uppercase tracking-wider"&gt;{stat.label}&lt;/p&gt;
+              &lt;p className="text-2xl font-bold mt-1"&gt;{stat.value}&lt;/p&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/section&gt;
 
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl hover:border-emerald-500/30 transition group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-emerald-500/10 rounded-2xl text-emerald-500 group-hover:scale-110 transition">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">In Force</span>
-            </div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Active Policies</p>
-            <p className="text-3xl font-black mt-1">{stats?.activePolicies || 0}</p>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl hover:border-amber-500/30 transition group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-amber-500/10 rounded-2xl text-amber-500 group-hover:scale-110 transition">
-                <Wallet className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">₹ INR</span>
-            </div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Claims Paid</p>
-            <p className="text-3xl font-black mt-1">₹{stats?.totalPayouts?.toLocaleString() || 0}</p>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl hover:border-rose-500/30 transition group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-rose-500/10 rounded-2xl text-rose-500 group-hover:scale-110 transition">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Global Risk</span>
-            </div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Platform Fraud Rate</p>
-            <p className="text-3xl font-black mt-1">{stats?.fraudRate || 0}%</p>
-          </div>
-
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl hover:border-cyan-500/30 transition group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-cyan-500/10 rounded-2xl text-cyan-400 group-hover:scale-110 transition">
-                <Wallet className="w-6 h-6" />
-              </div>
-              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Treasury</span>
-            </div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Current Demo Balance</p>
-            <p className="text-3xl font-black mt-1">₹{stats?.treasury?.balance?.toLocaleString() || 0}</p>
-          </div>
-        </section>
-
-        <section className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
-          <div className="flex flex-col lg:flex-row gap-4 lg:items-end lg:justify-between">
-            <div>
-              <h3 className="font-bold text-slate-200">Treasury Simulator Controls</h3>
-              <p className="text-xs text-slate-500">Top up fake capital to demonstrate payout movement.</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-              <input
+        {/* Treasury Controls */}
+        &lt;section className="bg-stone-900 border border-stone-800 rounded-2xl p-6"&gt;
+          &lt;div className="flex flex-col lg:flex-row gap-4 lg:items-end lg:justify-between mb-6"&gt;
+            &lt;div&gt;
+              &lt;h3 className="text-lg font-bold text-white"&gt;Treasury Controls&lt;/h3&gt;
+              &lt;p className="text-sm text-stone-500"&gt;Manage demonstration funds&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div className="flex flex-col sm:flex-row gap-3"&gt;
+              &lt;input
                 type="number"
                 min={1}
                 value={topupAmount}
-                onChange={(e) => setTopupAmount(Number(e.target.value || 0))}
-                className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold outline-none"
-              />
-              <input
+                onChange={(e) =&gt; setTopupAmount(Number(e.target.value || 0))}
+                className="bg-stone-800 border border-stone-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:border-stone-600 transition"
+                placeholder="Amount"
+              /&gt;
+              &lt;input
                 type="text"
                 value={topupNote}
-                onChange={(e) => setTopupNote(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold outline-none"
-              />
-              <button
+                onChange={(e) =&gt; setTopupNote(e.target.value)}
+                className="bg-stone-800 border border-stone-700 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:border-stone-600 transition"
+                placeholder="Note"
+              /&gt;
+              &lt;button
                 onClick={handleTopupTreasury}
-                className="bg-cyan-600 hover:bg-cyan-500 text-white font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-xl transition cursor-pointer"
-              >
+                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition cursor-pointer"
+              &gt;
+                &lt;Plus className="w-4 h-4" /&gt;
                 Top Up
-              </button>
-            </div>
-          </div>
+              &lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
 
-          <div className="grid sm:grid-cols-3 gap-4 mt-5">
-            <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-3">
-              <p className="text-[10px] uppercase font-bold text-slate-500">Inflow</p>
-              <p className="text-lg font-black text-emerald-400">₹{treasury?.inflow?.toLocaleString() || 0}</p>
-            </div>
-            <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-3">
-              <p className="text-[10px] uppercase font-bold text-slate-500">Outflow</p>
-              <p className="text-lg font-black text-rose-400">₹{treasury?.outflow?.toLocaleString() || 0}</p>
-            </div>
-            <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-3">
-              <p className="text-[10px] uppercase font-bold text-slate-500">Transactions</p>
-              <p className="text-lg font-black text-cyan-300">{treasury?.transactionsCount || 0}</p>
-            </div>
-          </div>
+          &lt;div className="grid sm:grid-cols-3 gap-4 mb-6"&gt;
+            &lt;div className="bg-stone-800/50 border border-stone-700/50 rounded-xl p-4"&gt;
+              &lt;p className="text-xs font-semibold text-stone-500 uppercase mb-1"&gt;Inflow&lt;/p&gt;
+              &lt;p className="text-xl font-bold text-emerald-400"&gt;Rs. {treasury?.inflow?.toLocaleString() || 0}&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div className="bg-stone-800/50 border border-stone-700/50 rounded-xl p-4"&gt;
+              &lt;p className="text-xs font-semibold text-stone-500 uppercase mb-1"&gt;Outflow&lt;/p&gt;
+              &lt;p className="text-xl font-bold text-rose-400"&gt;Rs. {treasury?.outflow?.toLocaleString() || 0}&lt;/p&gt;
+            &lt;/div&gt;
+            &lt;div className="bg-stone-800/50 border border-stone-700/50 rounded-xl p-4"&gt;
+              &lt;p className="text-xs font-semibold text-stone-500 uppercase mb-1"&gt;Transactions&lt;/p&gt;
+              &lt;p className="text-xl font-bold text-cyan-400"&gt;{treasury?.transactionsCount || 0}&lt;/p&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
 
-          <div className="overflow-x-auto mt-5 border border-slate-800 rounded-xl">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-900 border-b border-slate-800">
-                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Time</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Type</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Direction</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Amount</th>
-                  <th className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-widest">Balance After</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {(treasury?.transactions || []).slice(0, 8).map((tx: any) => (
-                  <tr key={tx.id} className="hover:bg-slate-800/30 transition">
-                    <td className="px-4 py-3 text-xs text-slate-300">{new Date(tx.createdAt).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-xs font-black text-slate-100 uppercase">{tx.type}</td>
-                    <td className={`px-4 py-3 text-xs font-black uppercase ${tx.direction === 'CREDIT' ? 'text-emerald-400' : 'text-rose-400'}`}>{tx.direction}</td>
-                    <td className="px-4 py-3 text-xs text-slate-200">₹{tx.amount}</td>
-                    <td className="px-4 py-3 text-xs text-cyan-300 font-bold">₹{tx.balanceAfter}</td>
-                  </tr>
+          {/* Transaction Log */}
+          &lt;div className="overflow-x-auto rounded-xl border border-stone-800"&gt;
+            &lt;table className="w-full text-left"&gt;
+              &lt;thead&gt;
+                &lt;tr className="bg-stone-800/50 border-b border-stone-800"&gt;
+                  &lt;th className="px-4 py-3 text-xs font-semibold text-stone-500 uppercase"&gt;Time&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-xs font-semibold text-stone-500 uppercase"&gt;Type&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-xs font-semibold text-stone-500 uppercase"&gt;Direction&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-xs font-semibold text-stone-500 uppercase"&gt;Amount&lt;/th&gt;
+                  &lt;th className="px-4 py-3 text-xs font-semibold text-stone-500 uppercase"&gt;Balance&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody className="divide-y divide-stone-800"&gt;
+                {(treasury?.transactions || []).slice(0, 6).map((tx: any) =&gt; (
+                  &lt;tr key={tx.id} className="hover:bg-stone-800/30 transition"&gt;
+                    &lt;td className="px-4 py-3 text-sm text-stone-400"&gt;{new Date(tx.createdAt).toLocaleString()}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-sm font-semibold text-stone-200 uppercase"&gt;{tx.type}&lt;/td&gt;
+                    &lt;td className={`px-4 py-3 text-sm font-semibold uppercase ${tx.direction === 'CREDIT' ? 'text-emerald-400' : 'text-rose-400'}`}&gt;{tx.direction}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-sm text-stone-300"&gt;Rs. {tx.amount}&lt;/td&gt;
+                    &lt;td className="px-4 py-3 text-sm text-cyan-400 font-semibold"&gt;Rs. {tx.balanceAfter}&lt;/td&gt;
+                  &lt;/tr&gt;
                 ))}
-                {(treasury?.transactions || []).length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-xs text-slate-500">No treasury transactions yet.</td>
-                  </tr>
+                {(treasury?.transactions || []).length === 0 &amp;&amp; (
+                  &lt;tr&gt;
+                    &lt;td colSpan={5} className="px-4 py-8 text-center text-sm text-stone-500"&gt;No treasury transactions yet.&lt;/td&gt;
+                  &lt;/tr&gt;
                 )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
 
-        {/* Intelligence Breakdown Section */}
-        <section className="grid lg:grid-cols-3 gap-8">
-           {/* Chart Placeholder (Simulated) */}
-           <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
-              <div className="flex justify-between items-center mb-10">
-                <h3 className="font-bold flex items-center gap-2 text-slate-300">
-                   <TrendingUp className="w-4 h-4 text-blue-500" />
-                   Premium Revenue vs Payouts
-                </h3>
-                <select className="bg-slate-800 border-none rounded-lg text-xs px-3 py-1.5 font-bold outline-none cursor-pointer">
-                  <option>Last 30 Days</option>
-                  <option>Year to Date</option>
-                </select>
-              </div>
+        {/* Analytics Grid */}
+        &lt;div className="grid lg:grid-cols-3 gap-6"&gt;
+          {/* Chart Placeholder */}
+          &lt;div className="lg:col-span-2 bg-stone-900 border border-stone-800 rounded-2xl p-6"&gt;
+            &lt;div className="flex justify-between items-center mb-8"&gt;
+              &lt;div className="flex items-center gap-2"&gt;
+                &lt;TrendingUp className="w-5 h-5 text-emerald-400" /&gt;
+                &lt;h3 className="font-bold text-white"&gt;Revenue vs Payouts&lt;/h3&gt;
+              &lt;/div&gt;
+              &lt;select className="bg-stone-800 border border-stone-700 rounded-lg text-sm px-3 py-1.5 font-medium outline-none cursor-pointer"&gt;
+                &lt;option&gt;Last 30 Days&lt;/option&gt;
+                &lt;option&gt;Year to Date&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
 
-              {/* Minimalist Bar Chart CSS Simulation */}
-              <div className="flex items-end justify-between gap-4 h-48 px-2 relative z-10">
-                {[40, 65, 30, 85, 45, 90, 60, 55, 75, 40].map((h, i) => (
-                  <div key={i} className="flex flex-col items-center gap-3 w-full max-w-[40px]">
-                    <div className="flex flex-row items-end gap-1 w-full h-full">
-                       <div className="bg-blue-500/30 w-full rounded-t-lg transition hover:bg-blue-500" style={{ height: `${h}%` }}></div>
-                       <div className="bg-emerald-500/20 w-1/2 rounded-t-lg transition hover:bg-emerald-500" style={{ height: `${h * 0.4}%` }}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 pt-6 border-t border-slate-800 flex justify-between px-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                <span>Jun 01</span>
-                <span>Jun 10</span>
-                <span>Jun 20</span>
-                <span>Jun 30</span>
-              </div>
-           </div>
+            {/* Simple Bar Chart */}
+            &lt;div className="flex items-end justify-between gap-3 h-48 px-2"&gt;
+              {[40, 65, 30, 85, 45, 90, 60, 55, 75, 40, 80, 50].map((h, i) =&gt; (
+                &lt;div key={i} className="flex flex-col items-center gap-2 w-full"&gt;
+                  &lt;div className="flex flex-row items-end gap-1 w-full h-full"&gt;
+                    &lt;div className="bg-emerald-500/20 hover:bg-emerald-500/40 w-full rounded-t-md transition" style={{ height: `${h}%` }}&gt;&lt;/div&gt;
+                    &lt;div className="bg-stone-700/50 hover:bg-stone-600/50 w-1/2 rounded-t-md transition" style={{ height: `${h * 0.4}%` }}&gt;&lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              ))}
+            &lt;/div&gt;
+            &lt;div className="mt-4 pt-4 border-t border-stone-800 flex justify-between text-xs font-medium text-stone-500"&gt;
+              &lt;span&gt;Week 1&lt;/span&gt;
+              &lt;span&gt;Week 2&lt;/span&gt;
+              &lt;span&gt;Week 3&lt;/span&gt;
+              &lt;span&gt;Week 4&lt;/span&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
 
-           {/* Fraud Alerts Feed */}
-           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col h-full">
-              <h3 className="font-bold mb-6 flex items-center gap-2 text-slate-300">
-                 <AlertTriangle className="w-4 h-4 text-rose-500" />
-                 Active Fraud Alerts
-              </h3>
-              <div className="space-y-4 flex-grow overflow-y-auto max-h-[350px] pr-2 custom-scrollbar">
-                {claims.filter(c => c.fraudScore > 0.5).length === 0 ? (
-                  <p className="text-slate-500 text-sm italic py-10 text-center">No active high-risk alerts.</p>
-                ) : (
-                  claims.filter(c => c.fraudScore > 0.5).map((c, i) => (
-                    <div key={i} className="p-4 bg-rose-500/5 border border-rose-500/20 rounded-2xl flex items-center justify-between group hover:bg-rose-500/10 transition">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-rose-500"></div>
-                        <div>
-                          <p className="text-xs font-black text-slate-100 uppercase tracking-wide">{c.user.fullName}</p>
-                          <p className="text-[10px] text-slate-500 font-bold">{c.user.city} | Fraud Score: {c.fraudScore}</p>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-rose-500 transition" />
-                    </div>
-                  ))
-                )}
-              </div>
-              <button className="mt-6 w-full py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-black uppercase tracking-widest transition cursor-pointer">View Global Fraud Graph</button>
-           </div>
-        </section>
+          {/* High Risk Alerts */}
+          &lt;div className="bg-stone-900 border border-stone-800 rounded-2xl p-6 flex flex-col"&gt;
+            &lt;div className="flex items-center gap-2 mb-6"&gt;
+              &lt;AlertTriangle className="w-5 h-5 text-rose-400" /&gt;
+              &lt;h3 className="font-bold text-white"&gt;High Risk Alerts&lt;/h3&gt;
+            &lt;/div&gt;
+            &lt;div className="space-y-3 flex-grow overflow-y-auto max-h-[300px]"&gt;
+              {claims.filter(c =&gt; c.fraudScore &gt; 0.5).length === 0 ? (
+                &lt;div className="text-center py-10"&gt;
+                  &lt;ShieldCheck className="w-10 h-10 text-stone-700 mx-auto mb-2" /&gt;
+                  &lt;p className="text-stone-500 text-sm"&gt;No high-risk alerts&lt;/p&gt;
+                &lt;/div&gt;
+              ) : (
+                claims.filter(c =&gt; c.fraudScore &gt; 0.5).map((c, i) =&gt; (
+                  &lt;div key={i} className="p-4 bg-rose-500/5 border border-rose-500/10 rounded-xl flex items-center justify-between group hover:bg-rose-500/10 transition"&gt;
+                    &lt;div className="flex items-center gap-3"&gt;
+                      &lt;div className="w-2 h-2 rounded-full bg-rose-500"&gt;&lt;/div&gt;
+                      &lt;div&gt;
+                        &lt;p className="text-sm font-semibold text-white"&gt;{c.user.fullName}&lt;/p&gt;
+                        &lt;p className="text-xs text-stone-500"&gt;{c.user.city} | Score: {c.fraudScore}&lt;/p&gt;
+                      &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;ChevronRight className="w-4 h-4 text-stone-600 group-hover:text-rose-400 transition" /&gt;
+                  &lt;/div&gt;
+                ))
+              )}
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
 
-        {/* Claims Table UI */}
-        <section className="bg-slate-900 border border-slate-800 rounded-3xl shadow-xl overflow-hidden">
-          <div className="p-6 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-center bg-slate-900/50 gap-4">
-            <h3 className="text-lg font-black text-white">Global Claim Ledger</h3>
-            <div className="flex gap-2 bg-slate-800 p-1 rounded-xl">
-              <button 
-                onClick={() => setActiveTab('all')}
-                className={`text-[10px] font-black px-4 py-2 rounded-lg transition uppercase tracking-widest cursor-pointer ${activeTab === 'all' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-              >
-                All
-              </button>
-              <button 
-                onClick={() => setActiveTab('REVIEW')}
-                className={`text-[10px] font-black px-4 py-2 rounded-lg transition uppercase tracking-widest cursor-pointer ${activeTab === 'REVIEW' ? 'bg-amber-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-              >
-                Pending
-              </button>
-              <button 
-                onClick={() => setActiveTab('PAID')}
-                className={`text-[10px] font-black px-4 py-2 rounded-lg transition uppercase tracking-widest cursor-pointer ${activeTab === 'PAID' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-              >
-                Processed
-              </button>
-            </div>
-          </div>
+        {/* Claims Table */}
+        &lt;section className="bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden"&gt;
+          &lt;div className="p-6 border-b border-stone-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"&gt;
+            &lt;h3 className="text-lg font-bold text-white"&gt;Global Claim Ledger&lt;/h3&gt;
+            &lt;div className="flex gap-2 bg-stone-800 p-1 rounded-xl"&gt;
+              {[
+                { key: 'all', label: 'All' },
+                { key: 'REVIEW', label: 'Pending' },
+                { key: 'PAID', label: 'Processed' },
+              ].map(tab =&gt; (
+                &lt;button 
+                  key={tab.key}
+                  onClick={() =&gt; setActiveTab(tab.key)}
+                  className={`text-xs font-semibold px-4 py-2 rounded-lg transition cursor-pointer ${
+                    activeTab === tab.key 
+                      ? 'bg-stone-700 text-white' 
+                      : 'text-stone-400 hover:text-white'
+                  }`}
+                &gt;
+                  {tab.label}
+                &lt;/button&gt;
+              ))}
+            &lt;/div&gt;
+          &lt;/div&gt;
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-900/80 border-b border-slate-800">
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Worker / ID</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Location</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Plan</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">ML Breakdown</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Status</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {filteredClaims.map((claim) => (
-                  <tr key={claim.id} className="hover:bg-slate-800/30 transition">
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 font-black text-xs">
+          &lt;div className="overflow-x-auto"&gt;
+            &lt;table className="w-full text-left"&gt;
+              &lt;thead&gt;
+                &lt;tr className="bg-stone-800/50 border-b border-stone-800"&gt;
+                  &lt;th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase"&gt;Worker&lt;/th&gt;
+                  &lt;th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase"&gt;Location&lt;/th&gt;
+                  &lt;th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase"&gt;Plan&lt;/th&gt;
+                  &lt;th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase"&gt;Scores&lt;/th&gt;
+                  &lt;th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase text-center"&gt;Status&lt;/th&gt;
+                  &lt;th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase text-right"&gt;Actions&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody className="divide-y divide-stone-800"&gt;
+                {filteredClaims.map((claim) =&gt; (
+                  &lt;tr key={claim.id} className="hover:bg-stone-800/30 transition"&gt;
+                    &lt;td className="px-6 py-5 whitespace-nowrap"&gt;
+                      &lt;div className="flex items-center gap-3"&gt;
+                        &lt;div className="w-9 h-9 rounded-xl bg-stone-800 flex items-center justify-center text-stone-300 font-bold text-sm"&gt;
                           {claim.user.fullName.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-black text-white">{claim.user.fullName}</p>
-                          <p className="text-[10px] text-slate-500 font-mono">#{claim.id.split('-')[0].toUpperCase()}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex items-center gap-2 text-slate-400 text-sm">
-                        <MapPin className="w-3.5 h-3.5" />
+                        &lt;/div&gt;
+                        &lt;div&gt;
+                          &lt;p className="text-sm font-semibold text-white"&gt;{claim.user.fullName}&lt;/p&gt;
+                          &lt;p className="text-xs text-stone-500 font-mono"&gt;#{claim.id.split('-')[0].toUpperCase()}&lt;/p&gt;
+                        &lt;/div&gt;
+                      &lt;/div&gt;
+                    &lt;/td&gt;
+                    &lt;td className="px-6 py-5 whitespace-nowrap"&gt;
+                      &lt;div className="flex items-center gap-2 text-stone-400 text-sm"&gt;
+                        &lt;MapPin className="w-4 h-4" /&gt;
                         {claim.user.city}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className={`text-[10px] font-black px-2.5 py-1 rounded-lg border w-fit uppercase ${
-                        claim.policy.planTier === 'PREMIUM' ? 'border-amber-500/20 bg-amber-500/10 text-amber-500' :
-                        claim.policy.planTier === 'STANDARD' ? 'border-blue-500/20 bg-blue-500/10 text-blue-500' :
-                        'border-slate-500/20 bg-slate-500/10 text-slate-400'
-                      }`}>
+                      &lt;/div&gt;
+                    &lt;/td&gt;
+                    &lt;td className="px-6 py-5 whitespace-nowrap"&gt;
+                      &lt;span className={`text-xs font-semibold px-2.5 py-1 rounded-lg border ${
+                        claim.policy.planTier === 'PREMIUM' ? 'border-amber-500/20 bg-amber-500/10 text-amber-400' :
+                        claim.policy.planTier === 'STANDARD' ? 'border-blue-500/20 bg-blue-500/10 text-blue-400' :
+                        'border-stone-600/20 bg-stone-700/20 text-stone-400'
+                      }`}&gt;
                         {claim.policy.planTier}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                       <div className="flex items-center gap-4">
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">Fraud</span>
-                            <span className={`text-xs font-black ${claim.fraudScore > 0.5 ? 'text-rose-500' : 'text-emerald-500'}`}>{claim.fraudScore}</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">Proof</span>
-                            <span className={`text-xs font-black ${claim.workProofScore < 0.4 ? 'text-amber-500' : 'text-emerald-500'}`}>{claim.workProofScore}</span>
-                          </div>
-                       </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-center">
-                       <div className="inline-flex items-center gap-2">
-                         <div className={`w-1.5 h-1.5 rounded-full ${
-                           claim.status === 'PAID' ? 'bg-emerald-500' :
-                           claim.status === 'REJECTED' ? 'bg-rose-500' :
-                           'bg-amber-500 animate-pulse'
-                         }`}></div>
-                         <span className={`text-[10px] font-black uppercase tracking-widest ${
-                           claim.status === 'PAID' ? 'text-emerald-500' :
-                           claim.status === 'REJECTED' ? 'text-rose-500' :
-                           'text-amber-500'
-                         }`}>
-                           {claim.status === 'PAID' ? 'Processed' : claim.status === 'REJECTED' ? 'Blocked' : 'Review Required'}
-                         </span>
-                       </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-right">
-                       {claim.status === 'REVIEW' ? (
-                         <div className="flex justify-end gap-2">
-                            <button 
-                              onClick={() => handleUpdateStatus(claim.id, 'REJECTED')}
-                              className="p-2 hover:bg-rose-500/10 rounded-lg text-rose-500/50 hover:text-rose-500 transition cursor-pointer"
-                              title="Reject Claim"
-                            >
-                              <XCircle className="w-5 h-5" />
-                            </button>
-                            <button 
-                              onClick={() => handleUpdateStatus(claim.id, 'PAID')}
-                              className="p-2 hover:bg-emerald-500/10 rounded-lg text-emerald-500/50 hover:text-emerald-500 transition cursor-pointer"
-                              title="Approve Payout"
-                            >
-                              <CheckCircle className="w-5 h-5" />
-                            </button>
-                         </div>
-                       ) : (
-                         <button className="p-2 text-slate-700 cursor-not-allowed">
-                            <ChevronRight className="w-5 h-5" />
-                         </button>
-                       )}
-                    </td>
-                  </tr>
+                      &lt;/span&gt;
+                    &lt;/td&gt;
+                    &lt;td className="px-6 py-5 whitespace-nowrap"&gt;
+                      &lt;div className="flex items-center gap-4"&gt;
+                        &lt;div&gt;
+                          &lt;span className="text-xs text-stone-500 block"&gt;Fraud&lt;/span&gt;
+                          &lt;span className={`text-sm font-bold ${claim.fraudScore &gt; 0.5 ? 'text-rose-400' : 'text-emerald-400'}`}&gt;{claim.fraudScore}&lt;/span&gt;
+                        &lt;/div&gt;
+                        &lt;div&gt;
+                          &lt;span className="text-xs text-stone-500 block"&gt;Proof&lt;/span&gt;
+                          &lt;span className={`text-sm font-bold ${claim.workProofScore &lt; 0.4 ? 'text-amber-400' : 'text-emerald-400'}`}&gt;{claim.workProofScore}&lt;/span&gt;
+                        &lt;/div&gt;
+                      &lt;/div&gt;
+                    &lt;/td&gt;
+                    &lt;td className="px-6 py-5 whitespace-nowrap text-center"&gt;
+                      &lt;div className="inline-flex items-center gap-2"&gt;
+                        &lt;div className={`w-2 h-2 rounded-full ${
+                          claim.status === 'PAID' ? 'bg-emerald-500' :
+                          claim.status === 'REJECTED' ? 'bg-rose-500' :
+                          'bg-amber-500 animate-pulse'
+                        }`}&gt;&lt;/div&gt;
+                        &lt;span className={`text-xs font-semibold ${
+                          claim.status === 'PAID' ? 'text-emerald-400' :
+                          claim.status === 'REJECTED' ? 'text-rose-400' :
+                          'text-amber-400'
+                        }`}&gt;
+                          {claim.status === 'PAID' ? 'Processed' : claim.status === 'REJECTED' ? 'Blocked' : 'Review'}
+                        &lt;/span&gt;
+                      &lt;/div&gt;
+                    &lt;/td&gt;
+                    &lt;td className="px-6 py-5 whitespace-nowrap text-right"&gt;
+                      {claim.status === 'REVIEW' ? (
+                        &lt;div className="flex justify-end gap-2"&gt;
+                          &lt;button 
+                            onClick={() =&gt; handleUpdateStatus(claim.id, 'REJECTED')}
+                            className="p-2 rounded-lg hover:bg-rose-500/10 text-stone-500 hover:text-rose-400 transition cursor-pointer"
+                            title="Reject"
+                          &gt;
+                            &lt;XCircle className="w-5 h-5" /&gt;
+                          &lt;/button&gt;
+                          &lt;button 
+                            onClick={() =&gt; handleUpdateStatus(claim.id, 'PAID')}
+                            className="p-2 rounded-lg hover:bg-emerald-500/10 text-stone-500 hover:text-emerald-400 transition cursor-pointer"
+                            title="Approve"
+                          &gt;
+                            &lt;CheckCircle className="w-5 h-5" /&gt;
+                          &lt;/button&gt;
+                        &lt;/div&gt;
+                      ) : (
+                        &lt;span className="text-stone-600"&gt;-&lt;/span&gt;
+                      )}
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
                 ))}
-                {filteredClaims.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-20 text-center text-slate-500 italic">
-                       No claims found matching this filter.
-                    </td>
-                  </tr>
+                {filteredClaims.length === 0 &amp;&amp; (
+                  &lt;tr&gt;
+                    &lt;td colSpan={6} className="px-6 py-16 text-center text-stone-500"&gt;
+                      No claims found matching this filter.
+                    &lt;/td&gt;
+                  &lt;/tr&gt;
                 )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </main>
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
+      &lt;/main&gt;
 
-      {/* Admin Footer Status */}
-      <footer className="p-4 border-t border-slate-900 bg-slate-950 flex items-center justify-between text-[10px] font-bold text-slate-600 uppercase tracking-[4px]">
-        <span>Operational Readiness: 100%</span>
-        <span>Connected to IMD Infrastructure Nodes</span>
-        <span>System Time: {new Date().toLocaleTimeString()}</span>
-      </footer>
-    </div>
+      {/* Footer */}
+      &lt;footer className="border-t border-stone-900 bg-stone-950 px-6 py-4"&gt;
+        &lt;div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-xs font-medium text-stone-600"&gt;
+          &lt;span&gt;System Status: Online&lt;/span&gt;
+          &lt;span&gt;Connected to IMD Infrastructure&lt;/span&gt;
+          &lt;span&gt;{new Date().toLocaleString()}&lt;/span&gt;
+        &lt;/div&gt;
+      &lt;/footer&gt;
+    &lt;/div&gt;
   );
 };
 

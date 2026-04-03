@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, X, User, Phone, MapPin, Bike, Briefcase, Wallet, LogOut, ShieldCheck, TrendingUp } from 'lucide-react';
+import { 
+  ShieldAlert, X, User, Phone, MapPin, Bike, Briefcase, Wallet, LogOut, ShieldCheck, TrendingUp,
+  Activity, Cloud, Zap, ChevronRight, Clock, Settings, Bell
+} from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<any>(null);
-  const [policy, setPolicy] = useState<any>(null);
+  const [profile, setProfile] = useState&lt;any&gt;(null);
+  const [policy, setPolicy] = useState&lt;any&gt;(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -13,13 +16,13 @@ const Dashboard: React.FC = () => {
   // Work-Proof Engine State
   const [workProofActive, setWorkProofActive] = useState(false);
   const [sessionActiveMinutes, setSessionActiveMinutes] = useState(0);
-  const [sessionHash, setSessionHash] = useState<string | null>(null);
+  const [sessionHash, setSessionHash] = useState&lt;string | null&gt;(null);
   const [isSimulating, setIsSimulating] = useState(false);
-  const [latestClaim, setLatestClaim] = useState<any>(null);
-  const lastInteractionRef = useRef<number>(Date.now());
-  const interactionsCountRef = useRef<number>(0);
-  const hiddenSwitchCountRef = useRef<number>(0);
-  const [activityStats, setActivityStats] = useState<any>({
+  const [latestClaim, setLatestClaim] = useState&lt;any&gt;(null);
+  const lastInteractionRef = useRef&lt;number&gt;(Date.now());
+  const interactionsCountRef = useRef&lt;number&gt;(0);
+  const hiddenSwitchCountRef = useRef&lt;number&gt;(0);
+  const [activityStats, setActivityStats] = useState&lt;any&gt;({
     activeMinutes: 0,
     heartbeatCount: 0,
     sessionAgeMins: 0,
@@ -39,7 +42,6 @@ const Dashboard: React.FC = () => {
 
     const fetchData = async () => {
       try {
-        // Fetch Policy
         const policyRes = await fetch('http://localhost:5000/api/policy', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -49,7 +51,6 @@ const Dashboard: React.FC = () => {
           if (!policyData) setShowModal(true);
         }
 
-        // Fetch User Profile
         const profileRes = await fetch('http://localhost:5000/api/user/profile', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -58,7 +59,6 @@ const Dashboard: React.FC = () => {
           setProfile(profileData);
         }
 
-        // Fetch Claim History (Optional, for initial state)
         const claimRes = await fetch('http://localhost:5000/api/claim/history', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -76,7 +76,6 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, [navigate]);
 
-  // Silent Work-Proof Heartbeat Engine (Step 3)
   useEffect(() => {
     const token = localStorage.getItem('kavachpay_token');
     if (!token) return;
@@ -86,13 +85,7 @@ const Dashboard: React.FC = () => {
       interactionsCountRef.current += 1;
     };
 
-    const activityEvents: Array<keyof WindowEventMap> = [
-      'mousemove',
-      'keydown',
-      'scroll',
-      'touchstart',
-      'click'
-    ];
+    const activityEvents: Array&lt;keyof WindowEventMap&gt; = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
 
     for (const eventName of activityEvents) {
       window.addEventListener(eventName, markInteraction, { passive: true });
@@ -110,11 +103,8 @@ const Dashboard: React.FC = () => {
     const refreshActivityStats = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/session/activity-stats', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-
         if (response.ok) {
           const remoteStats = await response.json();
           setActivityStats({
@@ -129,9 +119,7 @@ const Dashboard: React.FC = () => {
     };
 
     const sendHeartbeat = async () => {
-      const isRecentlyActive = Date.now() - lastInteractionRef.current <= 30 * 60 * 1000;
-
-      // Keep monitoring alive briefly in background after recent activity.
+      const isRecentlyActive = Date.now() - lastInteractionRef.current &lt;= 30 * 60 * 1000;
       if (!isRecentlyActive) {
         setWorkProofActive(false);
         return;
@@ -140,9 +128,7 @@ const Dashboard: React.FC = () => {
       try {
         const response = await fetch('http://localhost:5000/api/session/heartbeat', {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
           const data = await response.json();
@@ -159,12 +145,10 @@ const Dashboard: React.FC = () => {
       }
     };
 
-    // Fire initial heartbeat
     markInteraction();
     sendHeartbeat();
     refreshActivityStats();
 
-    // Fire every 60 seconds (accelerated for hackathon demo)
     const interval = setInterval(sendHeartbeat, 60000);
     const statsInterval = setInterval(refreshActivityStats, 30000);
     return () => {
@@ -190,7 +174,6 @@ const Dashboard: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         setLatestClaim(data.claim);
-        // Auto-fetch policy again to update the dashboard status if needed
       }
     } catch (err) {
       console.error('Simulation Failed', err);
@@ -205,449 +188,477 @@ const Dashboard: React.FC = () => {
     navigate('/');
   };
 
-  if (loading) return <div className="min-h-screen bg-[#eef2f6] flex items-center justify-center text-slate-600 font-medium">Loading Dashboard...</div>;
-  if (!profile) return <div className="min-h-screen bg-[#eef2f6] flex items-center justify-center text-rose-500 font-medium">Failed to load profile. Please log in again.</div>;
+  if (loading) {
+    return (
+      &lt;div className="min-h-screen bg-stone-50 flex items-center justify-center"&gt;
+        &lt;div className="flex flex-col items-center gap-4"&gt;
+          &lt;div className="w-12 h-12 border-4 border-stone-200 border-t-emerald-500 rounded-full animate-spin"&gt;&lt;/div&gt;
+          &lt;p className="text-stone-500 font-medium"&gt;Loading your dashboard...&lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  if (!profile) {
+    return (
+      &lt;div className="min-h-screen bg-stone-50 flex items-center justify-center"&gt;
+        &lt;div className="text-center"&gt;
+          &lt;ShieldAlert className="w-16 h-16 text-rose-400 mx-auto mb-4" /&gt;
+          &lt;p className="text-rose-500 font-medium text-lg"&gt;Failed to load profile&lt;/p&gt;
+          &lt;button onClick={() =&gt; navigate('/signin')} className="mt-4 px-6 py-2 bg-stone-900 text-white rounded-full font-medium hover:bg-stone-800 transition cursor-pointer"&gt;
+            Sign In Again
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-[#eef2f6] text-slate-900 p-6 sm:p-10 relative overflow-hidden">
-      {/* Background Gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-300 opacity-20 blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500 opacity-20 blur-[100px] pointer-events-none"></div>
+    &lt;main className="min-h-screen bg-stone-50 text-stone-900"&gt;
+      {/* Top Navigation */}
+      &lt;nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-stone-100"&gt;
+        &lt;div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between"&gt;
+          &lt;button onClick={() =&gt; navigate('/')} className="flex items-center gap-2 cursor-pointer"&gt;
+            &lt;div className="w-9 h-9 bg-stone-900 rounded-xl flex items-center justify-center"&gt;
+              &lt;ShieldCheck className="w-5 h-5 text-emerald-400" /&gt;
+            &lt;/div&gt;
+            &lt;span className="text-xl font-bold tracking-tight"&gt;KavachPay&lt;/span&gt;
+          &lt;/button&gt;
+          
+          &lt;div className="flex items-center gap-3"&gt;
+            &lt;button className="p-2.5 rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 transition cursor-pointer"&gt;
+              &lt;Bell className="w-5 h-5" /&gt;
+            &lt;/button&gt;
+            &lt;button 
+              onClick={() =&gt; setIsProfileOpen(true)}
+              className="flex items-center gap-3 bg-stone-100 hover:bg-stone-200 px-4 py-2 rounded-full transition cursor-pointer"
+            &gt;
+              &lt;div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"&gt;
+                &lt;User className="w-4 h-4" /&gt;
+              &lt;/div&gt;
+              &lt;span className="font-semibold text-stone-700 hidden sm:block"&gt;{profile.fullName.split(' ')[0]}&lt;/span&gt;
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/nav&gt;
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        <header className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-blue-900 tracking-tight">KavachPay</h1>
-          <button 
-            onClick={() => setIsProfileOpen(true)}
-            className="flex items-center gap-2 bg-white/60 hover:bg-white backdrop-blur-md px-4 py-2 rounded-full shadow-sm border border-white transition cursor-pointer font-bold text-blue-900 group"
-          >
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition">
-              <User className="w-4 h-4" />
-            </div>
-            Profile
-          </button>
-        </header>
+      &lt;div className="max-w-6xl mx-auto px-6 py-8"&gt;
+        {/* Welcome Section */}
+        &lt;section className="mb-8"&gt;
+          &lt;div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"&gt;
+            &lt;div&gt;
+              &lt;h1 className="text-3xl font-bold text-stone-900 mb-1"&gt;
+                Welcome back, {profile.fullName.split(' ')[0]}
+              &lt;/h1&gt;
+              &lt;p className="text-stone-500"&gt;Here&apos;s an overview of your protection status&lt;/p&gt;
+            &lt;/div&gt;
+            {policy &amp;&amp; (
+              &lt;div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full"&gt;
+                &lt;div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"&gt;&lt;/div&gt;
+                &lt;span className="text-sm font-semibold text-emerald-700"&gt;Policy Active&lt;/span&gt;
+              &lt;/div&gt;
+            )}
+          &lt;/div&gt;
+        &lt;/section&gt;
 
-        {/* Main Dashboard Area */}
-        <div className="space-y-6">
-          {/* Welcome Card */}
-          <section className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl rounded-3xl p-6 sm:p-8 transition-all hover:shadow-2xl duration-300">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-blue-900 to-blue-600 bg-clip-text text-transparent">
-                  Welcome back, {profile.fullName.split(' ')[0]}! 👋
-                </h2>
-                <p className="mt-2 text-sm sm:text-base text-slate-500 font-medium">Your KavachPay protection is ready.</p>
-              </div>
-              {policy && (
-                <div className="px-4 py-2 border border-emerald-500/30 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-sm flex items-center gap-2 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  ACTIVE POLICY
-                </div>
-              )}
-            </div>
-          </section>
+        {/* Stats Grid */}
+        &lt;section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"&gt;
+          &lt;div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm"&gt;
+            &lt;div className="flex items-center gap-3 mb-3"&gt;
+              &lt;div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center"&gt;
+                &lt;Activity className={`w-5 h-5 ${workProofActive ? 'text-emerald-600' : 'text-stone-400'}`} /&gt;
+              &lt;/div&gt;
+              &lt;div className={`w-2 h-2 rounded-full ${workProofActive ? 'bg-emerald-500 animate-pulse' : 'bg-stone-300'}`}&gt;&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;p className="text-2xl font-bold text-stone-900"&gt;{sessionActiveMinutes} min&lt;/p&gt;
+            &lt;p className="text-sm text-stone-500"&gt;Active Session&lt;/p&gt;
+          &lt;/div&gt;
 
-          {/* Dashboard Grid */}
-          <div className="grid sm:grid-cols-2 gap-6">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition">
-              <h3 className="text-lg font-bold text-slate-800">Work-Proof Protocol</h3>
-              <div className="mt-4 flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <span className={`h-3 w-3 rounded-full ${workProofActive ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
-                  <span className="font-semibold text-slate-600">
-                    {workProofActive ? `Session Active: ${sessionActiveMinutes} min` : 'Session Inactive'}
-                  </span>
-                </div>
-                {sessionHash && (
-                  <div className="mt-2 bg-slate-50 border border-slate-100 rounded-lg p-2 overflow-hidden">
-                    <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Live Cryptographic Hash</p>
-                    <p className="text-xs font-mono text-slate-500 truncate" title={sessionHash}>
-                      {sessionHash}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-slate-800">Your Plan</h3>
-                {policy ? (
-                  <div className="mt-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <p className="flex justify-between text-sm text-slate-600 mb-2"><span>Tier:</span><span className="font-bold text-slate-900">{policy.planTier}</span></p>
-                    <p className="flex justify-between text-sm text-slate-600 mb-2"><span>Coverage:</span><span className="font-bold text-emerald-600">₹{policy.coverageAmount}</span></p>
-                    <p className="flex justify-between text-sm text-slate-600 mb-0"><span>Expires:</span><span className="font-semibold text-slate-700">{new Date(policy.endDate).toLocaleDateString()}</span></p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500 mt-2">No active policy yet.</p>
-                )}
-              </div>
-              {!policy && (
-                <button 
-                  onClick={() => navigate('/policy')}
-                  className="mt-4 w-full bg-blue-600 text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition cursor-pointer"
-                >
-                  Activate Coverage Now
-                </button>
-              )}
-            </div>
-          </div>
+          &lt;div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm"&gt;
+            &lt;div className="flex items-center gap-3 mb-3"&gt;
+              &lt;div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"&gt;
+                &lt;Zap className="w-5 h-5 text-blue-600" /&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;p className="text-2xl font-bold text-stone-900"&gt;{activityStats.heartbeatCount || 0}&lt;/p&gt;
+            &lt;p className="text-sm text-stone-500"&gt;Heartbeats&lt;/p&gt;
+          &lt;/div&gt;
 
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition">
-            <h3 className="text-lg font-bold text-slate-800">Live Activity Diagnostics (Web)</h3>
-            <p className="text-xs text-slate-500 mt-1">Prototype telemetry from browser + backend session tracker.</p>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                <p className="text-[10px] uppercase font-bold text-slate-400">Heartbeat Count</p>
-                <p className="text-xl font-black text-slate-800">{activityStats.heartbeatCount || 0}</p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                <p className="text-[10px] uppercase font-bold text-slate-400">Session Age</p>
-                <p className="text-xl font-black text-slate-800">{activityStats.sessionAgeMins || 0} min</p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                <p className="text-[10px] uppercase font-bold text-slate-400">Avg Beat Gap</p>
-                <p className="text-xl font-black text-slate-800">{activityStats.avgHeartbeatGapMs || 0} ms</p>
-              </div>
-              <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
-                <p className="text-[10px] uppercase font-bold text-slate-400">Timing Jitter</p>
-                <p className="text-xl font-black text-slate-800">{activityStats.jitterMs || 0} ms</p>
-              </div>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4 mt-4">
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                <p className="text-[10px] uppercase font-bold text-blue-500">Local Interactions</p>
-                <p className="text-xl font-black text-blue-700">{activityStats.localInteractions || 0}</p>
-              </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-                <p className="text-[10px] uppercase font-bold text-amber-600">App Switches Detected</p>
-                <p className="text-xl font-black text-amber-700">{activityStats.hiddenSwitches || 0}</p>
-              </div>
-            </div>
-          </div>
+          &lt;div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm"&gt;
+            &lt;div className="flex items-center gap-3 mb-3"&gt;
+              &lt;div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center"&gt;
+                &lt;Clock className="w-5 h-5 text-amber-600" /&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;p className="text-2xl font-bold text-stone-900"&gt;{activityStats.sessionAgeMins || 0} min&lt;/p&gt;
+            &lt;p className="text-sm text-stone-500"&gt;Session Age&lt;/p&gt;
+          &lt;/div&gt;
 
-          {/* Quick Navigation Cards */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <button
-              onClick={() => navigate('/claims')}
-              className="group bg-white rounded-3xl p-5 shadow-sm border border-slate-100 hover:shadow-md hover:border-blue-200 transition text-left cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-slate-800 group-hover:text-blue-700 transition">Claim History</h3>
-                  <p className="text-xs text-slate-400 mt-1">View all claims with full signal breakdown</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition">
-                  <ShieldCheck className="w-5 h-5 text-blue-500" />
-                </div>
-              </div>
-            </button>
-            <button
-              onClick={() => navigate('/payout')}
-              className="group bg-white rounded-3xl p-5 shadow-sm border border-slate-100 hover:shadow-md hover:border-emerald-200 transition text-left cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-slate-800 group-hover:text-emerald-700 transition">Payout History</h3>
-                  <p className="text-xs text-slate-400 mt-1">Track your income protection payouts</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition">
-                  <TrendingUp className="w-5 h-5 text-emerald-500" />
-                </div>
-              </div>
-            </button>
-          </div>
+          &lt;div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm"&gt;
+            &lt;div className="flex items-center gap-3 mb-3"&gt;
+              &lt;div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center"&gt;
+                &lt;ShieldCheck className="w-5 h-5 text-purple-600" /&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;p className="text-2xl font-bold text-stone-900"&gt;{policy?.planTier || 'None'}&lt;/p&gt;
+            &lt;p className="text-sm text-stone-500"&gt;Plan Tier&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/section&gt;
 
-          {/* AI CLAIM ADJUDICATION CARD (Step 5) */}
-          {latestClaim && (
-            <div className="bg-white/90 backdrop-blur-xl border-2 border-blue-500/20 shadow-2xl rounded-3xl overflow-hidden animate-in slide-in-from-bottom-5 duration-500">
-              <div className="bg-blue-600 p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <ShieldCheck className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-bold text-white">AI Adjudication Result</h3>
-                </div>
-                <button 
-                  onClick={() => setLatestClaim(null)}
-                  className="text-white/70 hover:text-white cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+        {/* Main Content Grid */}
+        &lt;div className="grid lg:grid-cols-3 gap-6"&gt;
+          {/* Work-Proof Protocol Card */}
+          &lt;div className="lg:col-span-2 bg-white rounded-3xl p-6 border border-stone-100 shadow-sm"&gt;
+            &lt;div className="flex items-center justify-between mb-6"&gt;
+              &lt;div className="flex items-center gap-3"&gt;
+                &lt;div className="w-12 h-12 rounded-2xl bg-stone-900 flex items-center justify-center"&gt;
+                  &lt;Activity className="w-6 h-6 text-emerald-400" /&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;h2 className="text-lg font-bold text-stone-900"&gt;Work-Proof Protocol&lt;/h2&gt;
+                  &lt;p className="text-sm text-stone-500"&gt;Real-time activity verification&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div className={`px-3 py-1.5 rounded-full text-xs font-bold ${workProofActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}&gt;
+                {workProofActive ? 'ACTIVE' : 'INACTIVE'}
+              &lt;/div&gt;
+            &lt;/div&gt;
+
+            {sessionHash &amp;&amp; (
+              &lt;div className="bg-stone-50 rounded-2xl p-4 mb-6"&gt;
+                &lt;p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2"&gt;Live Cryptographic Hash&lt;/p&gt;
+                &lt;p className="text-sm font-mono text-stone-600 break-all"&gt;{sessionHash}&lt;/p&gt;
+              &lt;/div&gt;
+            )}
+
+            &lt;div className="grid grid-cols-2 sm:grid-cols-4 gap-4"&gt;
+              &lt;div className="bg-stone-50 rounded-xl p-4"&gt;
+                &lt;p className="text-xs font-semibold text-stone-400 uppercase mb-1"&gt;Beat Gap&lt;/p&gt;
+                &lt;p className="text-xl font-bold text-stone-900"&gt;{activityStats.avgHeartbeatGapMs || 0}ms&lt;/p&gt;
+              &lt;/div&gt;
+              &lt;div className="bg-stone-50 rounded-xl p-4"&gt;
+                &lt;p className="text-xs font-semibold text-stone-400 uppercase mb-1"&gt;Jitter&lt;/p&gt;
+                &lt;p className="text-xl font-bold text-stone-900"&gt;{activityStats.jitterMs || 0}ms&lt;/p&gt;
+              &lt;/div&gt;
+              &lt;div className="bg-blue-50 rounded-xl p-4"&gt;
+                &lt;p className="text-xs font-semibold text-blue-500 uppercase mb-1"&gt;Interactions&lt;/p&gt;
+                &lt;p className="text-xl font-bold text-blue-700"&gt;{activityStats.localInteractions || 0}&lt;/p&gt;
+              &lt;/div&gt;
+              &lt;div className="bg-amber-50 rounded-xl p-4"&gt;
+                &lt;p className="text-xs font-semibold text-amber-600 uppercase mb-1"&gt;App Switches&lt;/p&gt;
+                &lt;p className="text-xl font-bold text-amber-700"&gt;{activityStats.hiddenSwitches || 0}&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          {/* Policy Card */}
+          &lt;div className="bg-gradient-to-br from-stone-900 to-stone-800 rounded-3xl p-6 text-white"&gt;
+            &lt;div className="flex items-center gap-3 mb-6"&gt;
+              &lt;div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center"&gt;
+                &lt;ShieldCheck className="w-6 h-6 text-emerald-400" /&gt;
+              &lt;/div&gt;
+              &lt;div&gt;
+                &lt;h2 className="text-lg font-bold"&gt;Your Plan&lt;/h2&gt;
+                &lt;p className="text-sm text-stone-400"&gt;Protection details&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+
+            {policy ? (
+              &lt;div className="space-y-4"&gt;
+                &lt;div className="flex justify-between items-center py-3 border-b border-white/10"&gt;
+                  &lt;span className="text-stone-400"&gt;Tier&lt;/span&gt;
+                  &lt;span className="font-bold text-emerald-400"&gt;{policy.planTier}&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;div className="flex justify-between items-center py-3 border-b border-white/10"&gt;
+                  &lt;span className="text-stone-400"&gt;Coverage&lt;/span&gt;
+                  &lt;span className="font-bold"&gt;Rs. {policy.coverageAmount}&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;div className="flex justify-between items-center py-3"&gt;
+                  &lt;span className="text-stone-400"&gt;Expires&lt;/span&gt;
+                  &lt;span className="font-medium"&gt;{new Date(policy.endDate).toLocaleDateString()}&lt;/span&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            ) : (
+              &lt;div className="text-center py-6"&gt;
+                &lt;p className="text-stone-400 mb-4"&gt;You are currently unprotected&lt;/p&gt;
+                &lt;button 
+                  onClick={() =&gt; navigate('/policy')}
+                  className="w-full bg-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-400 transition cursor-pointer"
+                &gt;
+                  Get Protected
+                &lt;/button&gt;
+              &lt;/div&gt;
+            )}
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        {/* Quick Navigation */}
+        &lt;section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6"&gt;
+          &lt;button
+            onClick={() =&gt; navigate('/claims')}
+            className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-emerald-200 hover:shadow-md transition text-left cursor-pointer"
+          &gt;
+            &lt;div className="flex items-center justify-between"&gt;
+              &lt;div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center group-hover:bg-emerald-200 transition"&gt;
+                &lt;ShieldCheck className="w-6 h-6 text-emerald-600" /&gt;
+              &lt;/div&gt;
+              &lt;ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-emerald-500 transition" /&gt;
+            &lt;/div&gt;
+            &lt;h3 className="text-base font-bold text-stone-900 mt-4"&gt;Claim History&lt;/h3&gt;
+            &lt;p className="text-sm text-stone-500 mt-1"&gt;View all your claims&lt;/p&gt;
+          &lt;/button&gt;
+
+          &lt;button
+            onClick={() =&gt; navigate('/payout')}
+            className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-blue-200 hover:shadow-md transition text-left cursor-pointer"
+          &gt;
+            &lt;div className="flex items-center justify-between"&gt;
+              &lt;div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition"&gt;
+                &lt;TrendingUp className="w-6 h-6 text-blue-600" /&gt;
+              &lt;/div&gt;
+              &lt;ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-blue-500 transition" /&gt;
+            &lt;/div&gt;
+            &lt;h3 className="text-base font-bold text-stone-900 mt-4"&gt;Payout History&lt;/h3&gt;
+            &lt;p className="text-sm text-stone-500 mt-1"&gt;Track your payouts&lt;/p&gt;
+          &lt;/button&gt;
+
+          &lt;button
+            onClick={() =&gt; navigate('/policy')}
+            className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-purple-200 hover:shadow-md transition text-left cursor-pointer"
+          &gt;
+            &lt;div className="flex items-center justify-between"&gt;
+              &lt;div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition"&gt;
+                &lt;Settings className="w-6 h-6 text-purple-600" /&gt;
+              &lt;/div&gt;
+              &lt;ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-purple-500 transition" /&gt;
+            &lt;/div&gt;
+            &lt;h3 className="text-base font-bold text-stone-900 mt-4"&gt;Manage Policy&lt;/h3&gt;
+            &lt;p className="text-sm text-stone-500 mt-1"&gt;View or upgrade plan&lt;/p&gt;
+          &lt;/button&gt;
+
+          &lt;button
+            onClick={() =&gt; navigate('/how-it-works')}
+            className="group bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:border-amber-200 hover:shadow-md transition text-left cursor-pointer"
+          &gt;
+            &lt;div className="flex items-center justify-between"&gt;
+              &lt;div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition"&gt;
+                &lt;Cloud className="w-6 h-6 text-amber-600" /&gt;
+              &lt;/div&gt;
+              &lt;ChevronRight className="w-5 h-5 text-stone-300 group-hover:text-amber-500 transition" /&gt;
+            &lt;/div&gt;
+            &lt;h3 className="text-base font-bold text-stone-900 mt-4"&gt;How It Works&lt;/h3&gt;
+            &lt;p className="text-sm text-stone-500 mt-1"&gt;Learn about KavachPay&lt;/p&gt;
+          &lt;/button&gt;
+        &lt;/section&gt;
+
+        {/* Latest Claim Result */}
+        {latestClaim &amp;&amp; (
+          &lt;section className="mt-6"&gt;
+            &lt;div className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden"&gt;
+              &lt;div className="bg-stone-900 px-6 py-4 flex items-center justify-between"&gt;
+                &lt;div className="flex items-center gap-3"&gt;
+                  &lt;ShieldCheck className="w-5 h-5 text-emerald-400" /&gt;
+                  &lt;h3 className="font-bold text-white"&gt;Latest AI Adjudication&lt;/h3&gt;
+                &lt;/div&gt;
+                &lt;button onClick={() =&gt; setLatestClaim(null)} className="text-stone-400 hover:text-white transition cursor-pointer"&gt;
+                  &lt;X className="w-5 h-5" /&gt;
+                &lt;/button&gt;
+              &lt;/div&gt;
               
-              <div className="p-6 grid md:grid-cols-2 gap-8 items-center bg-gradient-to-br from-blue-50 to-white">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500 font-bold uppercase tracking-wider">ML Confidence Score</span>
-                    <span className="text-blue-600 font-extrabold">{Math.round((1 - latestClaim.fraudScore) * 100)}%</span>
-                  </div>
-                  <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden shadow-inner">
-                    <div 
-                      className="bg-blue-600 h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(37,99,235,0.5)]" 
-                      style={{ width: `${(1 - latestClaim.fraudScore) * 100}%` }}
-                    />
-                  </div>
+              &lt;div className="p-6 grid md:grid-cols-2 gap-8"&gt;
+                &lt;div className="space-y-4"&gt;
+                  &lt;div&gt;
+                    &lt;div className="flex items-center justify-between text-sm mb-2"&gt;
+                      &lt;span className="font-semibold text-stone-500 uppercase tracking-wider"&gt;ML Confidence&lt;/span&gt;
+                      &lt;span className="font-bold text-emerald-600"&gt;{Math.round((1 - latestClaim.fraudScore) * 100)}%&lt;/span&gt;
+                    &lt;/div&gt;
+                    &lt;div className="w-full bg-stone-100 h-3 rounded-full overflow-hidden"&gt;
+                      &lt;div 
+                        className="bg-emerald-500 h-full rounded-full transition-all duration-1000"
+                        style={{ width: `${(1 - latestClaim.fraudScore) * 100}%` }}
+                      /&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
                   
-                  <div className="grid grid-cols-2 gap-3 text-center">
-                    <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Work-Proof</p>
-                      <p className="text-lg font-black text-emerald-600">{latestClaim.workProofScore}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Fraud Risk</p>
-                      <p className="text-lg font-black text-rose-600">{latestClaim.fraudScore}</p>
-                    </div>
-                  </div>
-                </div>
+                  &lt;div className="grid grid-cols-2 gap-4"&gt;
+                    &lt;div className="bg-stone-50 p-4 rounded-xl text-center"&gt;
+                      &lt;p className="text-xs font-semibold text-stone-400 uppercase mb-1"&gt;Work-Proof&lt;/p&gt;
+                      &lt;p className="text-xl font-bold text-emerald-600"&gt;{latestClaim.workProofScore}&lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;div className="bg-stone-50 p-4 rounded-xl text-center"&gt;
+                      &lt;p className="text-xs font-semibold text-stone-400 uppercase mb-1"&gt;Fraud Risk&lt;/p&gt;
+                      &lt;p className="text-xl font-bold text-rose-500"&gt;{latestClaim.fraudScore}&lt;/p&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
 
-                <div className="bg-white/50 border border-white p-5 rounded-2xl shadow-sm space-y-3">
-                  <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest text-center mb-4">Signal Breakdown</h4>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="flex items-center gap-2 text-slate-700 font-semibold">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> IP Location City
-                      </span>
-                      <span className="text-emerald-600 font-black uppercase">MATCHED</span>
-                    </div>
-
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="flex items-center gap-2 text-slate-700 font-semibold">
-                        <div className={`w-1.5 h-1.5 rounded-full ${latestClaim.isChainValid ? 'bg-emerald-500' : 'bg-red-500'}`}></div> 
-                        Hash Chain Audit
-                      </span>
-                      <span className={`${latestClaim.isChainValid ? 'text-emerald-600' : 'text-red-600'} font-black uppercase`}>
-                        {latestClaim.isChainValid ? 'PASSED' : 'FAILED'}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="flex items-center gap-2 text-slate-700 font-semibold">
-                        <div className={`w-1.5 h-1.5 rounded-full ${latestClaim.behavioralScore > 0.6 ? 'bg-emerald-500' : 'bg-amber-500'}`}></div> 
-                        Behavioral Shield
-                      </span>
-                      <span className={`${latestClaim.behavioralScore > 0.6 ? 'text-emerald-600' : 'text-amber-600'} font-black uppercase`}>
-                        {latestClaim.behavioralScore > 0.8 ? 'HUMAN' : latestClaim.behavioralScore > 0.4 ? 'STABLE' : 'BOT'}
-                      </span>
-                    </div>
-                  </div>
+                &lt;div className="bg-stone-50 rounded-2xl p-5 space-y-3"&gt;
+                  &lt;h4 className="text-xs font-bold text-stone-400 uppercase tracking-widest"&gt;Signal Breakdown&lt;/h4&gt;
                   
-                  {/* AI Adjudication Evidence */}
-                  <div className="mt-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                    <p className="text-[10px] uppercase font-black text-blue-400 mb-1.5 tracking-widest flex items-center gap-1.5">
-                      <TrendingUp className="w-3 H-3" /> ADJUDICATION LOG
-                    </p>
-                    <p className="text-[11px] text-slate-600 leading-relaxed italic font-medium">
-                      {latestClaim.reviewerNotes || 'Comparing Open-Meteo, NewsAPI & behavioral signals...'}
-                    </p>
-                  </div>
+                  &lt;div className="flex justify-between items-center text-sm"&gt;
+                    &lt;span className="flex items-center gap-2 text-stone-600"&gt;
+                      &lt;div className="w-2 h-2 rounded-full bg-emerald-500"&gt;&lt;/div&gt; IP Location
+                    &lt;/span&gt;
+                    &lt;span className="font-bold text-emerald-600"&gt;MATCHED&lt;/span&gt;
+                  &lt;/div&gt;
+                  
+                  &lt;div className="flex justify-between items-center text-sm"&gt;
+                    &lt;span className="flex items-center gap-2 text-stone-600"&gt;
+                      &lt;div className={`w-2 h-2 rounded-full ${latestClaim.isChainValid ? 'bg-emerald-500' : 'bg-rose-500'}`}&gt;&lt;/div&gt; Hash Chain
+                    &lt;/span&gt;
+                    &lt;span className={`font-bold ${latestClaim.isChainValid ? 'text-emerald-600' : 'text-rose-500'}`}&gt;
+                      {latestClaim.isChainValid ? 'VALID' : 'INVALID'}
+                    &lt;/span&gt;
+                  &lt;/div&gt;
+                  
+                  &lt;div className="flex justify-between items-center text-sm"&gt;
+                    &lt;span className="flex items-center gap-2 text-stone-600"&gt;
+                      &lt;div className={`w-2 h-2 rounded-full ${latestClaim.behavioralScore &gt; 0.6 ? 'bg-emerald-500' : 'bg-amber-500'}`}&gt;&lt;/div&gt; Behavioral
+                    &lt;/span&gt;
+                    &lt;span className={`font-bold ${latestClaim.behavioralScore &gt; 0.6 ? 'text-emerald-600' : 'text-amber-500'}`}&gt;
+                      {latestClaim.behavioralScore &gt; 0.8 ? 'HUMAN' : latestClaim.behavioralScore &gt; 0.4 ? 'STABLE' : 'BOT'}
+                    &lt;/span&gt;
+                  &lt;/div&gt;
 
-                  <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-                    <p className="text-xs font-bold text-slate-500 mb-1">Final Decision</p>
-                    <p className={`text-xl font-black ${latestClaim.status === 'PAID' ? 'text-emerald-600' : 'text-orange-500'}`}>
-                      {latestClaim.status === 'PAID' ? '₹' + latestClaim.payoutAmount + ' PAID' : 'PENDING REVIEW'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+                  &lt;div className="pt-4 border-t border-stone-200 text-center"&gt;
+                    &lt;p className="text-xs text-stone-400 mb-1"&gt;Final Decision&lt;/p&gt;
+                    &lt;p className={`text-xl font-bold ${latestClaim.status === 'PAID' ? 'text-emerald-600' : 'text-amber-500'}`}&gt;
+                      {latestClaim.status === 'PAID' ? `Rs. ${latestClaim.payoutAmount} PAID` : 'PENDING REVIEW'}
+                    &lt;/p&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/section&gt;
+        )}
+      &lt;/div&gt;
 
-      {/* SIMULATE STORM BUTTON (Presentation Admin Tool) */}
-      <div className="fixed bottom-6 left-6 z-[45]">
-        <button 
+      {/* Floating Action Button */}
+      &lt;div className="fixed bottom-6 right-6 z-40"&gt;
+        &lt;button 
           onClick={triggerSimulation}
           disabled={isSimulating}
-          className={`group flex items-center gap-3 bg-slate-900 text-white px-6 py-4 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer font-black tracking-wide border-2 border-white/20 overflow-hidden relative ${isSimulating ? 'opacity-80' : ''}`}
-        >
-          <div className="absolute inset-0 bg-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-          <ShieldAlert className={`w-6 h-6 z-10 ${isSimulating ? 'animate-bounce text-orange-400' : 'text-blue-400'}`} />
-          <span className="z-10 text-sm uppercase">
-            {isSimulating ? 'Running ML Consensus...' : 'Analyze Environmental Risk'}
-          </span>
-        </button>
-      </div>
+          className={`group flex items-center gap-3 bg-stone-900 text-white px-6 py-4 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer font-semibold ${isSimulating ? 'opacity-80' : ''}`}
+        &gt;
+          &lt;ShieldAlert className={`w-5 h-5 ${isSimulating ? 'animate-pulse text-amber-400' : 'text-emerald-400'}`} /&gt;
+          &lt;span className="text-sm"&gt;{isSimulating ? 'Analyzing...' : 'Analyze Risk'}&lt;/span&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
 
-      {/* Dimmed Background Overlay */}
-      {isProfileOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity" 
-          onClick={() => setIsProfileOpen(false)}
-        />
+      {/* Profile Drawer Overlay */}
+      {isProfileOpen &amp;&amp; (
+        &lt;div 
+          className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-40 transition-opacity" 
+          onClick={() =&gt; setIsProfileOpen(false)}
+        /&gt;
       )}
 
-      {/* Sliding Profile Drawer */}
-      <div 
-        className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isProfileOpen ? 'translate-x-0' : 'translate-x-full'}`}
-      >
-        {/* Profile Header */}
-        <div className="bg-gradient-to-br from-blue-900 to-blue-700 p-8 text-center relative shadow-inner">
-          <button 
-            onClick={() => setIsProfileOpen(false)}
-            className="absolute top-4 left-4 text-white/70 hover:text-white transition cursor-pointer"
-          >
-            <X className="w-6 h-6" />
-          </button>
+      {/* Profile Drawer */}
+      &lt;div className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out flex flex-col ${isProfileOpen ? 'translate-x-0' : 'translate-x-full'}`}&gt;
+        &lt;div className="bg-stone-900 p-8 text-center relative"&gt;
+          &lt;button onClick={() =&gt; setIsProfileOpen(false)} className="absolute top-4 left-4 text-stone-400 hover:text-white transition cursor-pointer"&gt;
+            &lt;X className="w-6 h-6" /&gt;
+          &lt;/button&gt;
           
-          <div className="w-24 h-24 mx-auto bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/50 mb-3 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-            <User className="w-12 h-12 text-white" />
-          </div>
-          <h3 className="text-2xl font-bold text-white">{profile.fullName}</h3>
-          <div className="flex items-center justify-center mt-2">
-            <div className="bg-white/10 px-3 py-1 rounded-full flex items-center gap-2 text-xs font-semibold text-blue-100 border border-white/20">
-              {profile.trustScore >= 0.8 ? (
-                <><ShieldCheck className="w-4 h-4 text-emerald-400" /> High Trust Score</>
-              ) : (
-                <span className="tracking-wide">New Worker Profile</span>
-              )}
-            </div>
-          </div>
-        </div>
+          &lt;div className="w-20 h-20 mx-auto bg-stone-800 rounded-full flex items-center justify-center border-2 border-emerald-500/30 mb-4"&gt;
+            &lt;User className="w-10 h-10 text-stone-300" /&gt;
+          &lt;/div&gt;
+          &lt;h3 className="text-xl font-bold text-white"&gt;{profile.fullName}&lt;/h3&gt;
+          &lt;div className="flex items-center justify-center mt-2"&gt;
+            {profile.trustScore &gt;= 0.8 ? (
+              &lt;div className="bg-emerald-500/20 px-3 py-1 rounded-full flex items-center gap-2 text-xs font-semibold text-emerald-400 border border-emerald-500/30"&gt;
+                &lt;ShieldCheck className="w-3.5 h-3.5" /&gt; High Trust Score
+              &lt;/div&gt;
+            ) : (
+              &lt;span className="text-stone-400 text-sm"&gt;New Worker Profile&lt;/span&gt;
+            )}
+          &lt;/div&gt;
+        &lt;/div&gt;
 
-        {/* Profile Details Scrollable Area */}
-        <div className="flex-grow p-6 space-y-4 overflow-y-auto bg-slate-50">
-          {/* Active Policy Status */}
-          {policy ? (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-200/50 flex items-center justify-center text-emerald-700 font-bold shadow-sm">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Active Policy</p>
-                  <p className="text-sm font-bold text-emerald-900">{policy.planTier} Tier</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-semibold text-emerald-700">Coverage</p>
-                <p className="text-sm font-extrabold text-emerald-800">₹{policy.coverageAmount}</p>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-between shadow-sm">
-              <div className="flex items-center gap-3">
-                <ShieldAlert className="w-6 h-6 text-slate-400" />
-                <p className="text-sm font-medium text-slate-600">No active policy found.</p>
-              </div>
-              <button 
-                onClick={() => { setIsProfileOpen(false); navigate('/policy'); }}
-                className="text-xs font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm text-blue-600 hover:bg-blue-50 cursor-pointer"
-              >
-                Get Covered
-              </button>
-            </div>
+        &lt;div className="flex-grow p-6 space-y-3 overflow-y-auto bg-stone-50"&gt;
+          {policy &amp;&amp; (
+            &lt;div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-between"&gt;
+              &lt;div className="flex items-center gap-3"&gt;
+                &lt;div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"&gt;
+                  &lt;ShieldCheck className="w-5 h-5" /&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;p className="text-xs font-semibold text-emerald-600 uppercase"&gt;Active Policy&lt;/p&gt;
+                  &lt;p className="text-sm font-bold text-emerald-800"&gt;{policy.planTier} Tier&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+              &lt;div className="text-right"&gt;
+                &lt;p className="text-xs text-emerald-600"&gt;Coverage&lt;/p&gt;
+                &lt;p className="text-sm font-bold text-emerald-800"&gt;Rs. {policy.coverageAmount}&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
           )}
 
-          <div className="p-3 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0 group-hover:scale-110 transition">
-              <MapPin className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">City</p>
-              <p className="text-sm font-semibold text-slate-800">{profile.city}</p>
-            </div>
-          </div>
+          {[
+            { icon: MapPin, label: 'City', value: profile.city, color: 'blue' },
+            { icon: Briefcase, label: 'Platform', value: profile.deliveryPlatform, color: 'orange' },
+            { icon: Bike, label: 'Vehicle', value: profile.vehicleType, color: 'emerald' },
+            { icon: Wallet, label: 'UPI ID', value: profile.upiId || 'Not provided', color: 'purple' },
+            { icon: Phone, label: 'Contact', value: profile.phoneNumber || profile.email, color: 'stone' },
+          ].map((item, i) =&gt; (
+            &lt;div key={i} className="p-3 rounded-xl bg-white border border-stone-100 flex items-center gap-4"&gt;
+              &lt;div className={`w-10 h-10 rounded-full bg-${item.color}-50 flex items-center justify-center text-${item.color}-600`}&gt;
+                &lt;item.icon className="w-5 h-5" /&gt;
+              &lt;/div&gt;
+              &lt;div&gt;
+                &lt;p className="text-xs font-semibold text-stone-400 uppercase"&gt;{item.label}&lt;/p&gt;
+                &lt;p className="text-sm font-medium text-stone-800 capitalize"&gt;{item.value}&lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          ))}
+        &lt;/div&gt;
 
-          <div className="p-3 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 flex-shrink-0 group-hover:scale-110 transition">
-              <Briefcase className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Platform</p>
-              <p className="text-sm font-semibold text-slate-800 capitalize">{profile.deliveryPlatform}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0 group-hover:scale-110 transition">
-              <Bike className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Vehicle</p>
-              <p className="text-sm font-semibold text-slate-800 capitalize">{profile.vehicleType}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0 group-hover:scale-110 transition">
-              <Wallet className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">UPI ID</p>
-              <p className="text-sm font-semibold text-slate-800">{profile.upiId || 'Not provided'}</p>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 flex-shrink-0 group-hover:scale-110 transition">
-              <Phone className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Contact</p>
-              <p className="text-sm font-semibold text-slate-800">{profile.phoneNumber || profile.email}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Area */}
-        <div className="p-6 border-t border-slate-200 bg-white mt-auto">
-          <button 
+        &lt;div className="p-6 border-t border-stone-100 bg-white"&gt;
+          &lt;button 
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-rose-600 font-bold hover:bg-rose-50 border border-rose-100 hover:border-rose-200 transition duration-200 cursor-pointer"
-          >
-            <LogOut className="w-5 h-5" />
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-rose-600 font-semibold hover:bg-rose-50 border border-rose-100 transition cursor-pointer"
+          &gt;
+            &lt;LogOut className="w-5 h-5" /&gt;
             Sign Out
-          </button>
-        </div>
-      </div>
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
 
-      {/* Broad Modal Popup for Unprotected Users */}
-      {showModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden relative transform transition-all scale-100 animate-in zoom-in-95 duration-300">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-rose-500 to-orange-500 p-6 flex flex-col items-center relative">
-              <button 
-                onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 text-white/80 hover:text-white transition cursor-pointer"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <div className="bg-white/20 p-4 rounded-full mb-4">
-                <ShieldAlert className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white text-center">Your Income is at Risk!</h3>
-            </div>
+      {/* Onboarding Modal */}
+      {showModal &amp;&amp; (
+        &lt;div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4"&gt;
+          &lt;div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden"&gt;
+            &lt;div className="bg-gradient-to-r from-rose-500 to-orange-500 p-8 flex flex-col items-center"&gt;
+              &lt;div className="bg-white/20 p-4 rounded-full mb-4"&gt;
+                &lt;ShieldAlert className="w-10 h-10 text-white" /&gt;
+              &lt;/div&gt;
+              &lt;h3 className="text-2xl font-bold text-white text-center"&gt;Your Income is at Risk&lt;/h3&gt;
+            &lt;/div&gt;
             
-            {/* Modal Body */}
-            <div className="p-8 text-center text-slate-600">
-              <p className="text-lg mb-6 leading-relaxed">
-                You are currently <span className="font-bold text-rose-500">unprotected</span> against sudden extreme weather and gig work disruptions. 
-                Don't let a heavy downpour or heatwave wipe out your day's earnings.
-              </p>
+            &lt;div className="p-8 text-center"&gt;
+              &lt;p className="text-stone-600 mb-6 leading-relaxed"&gt;
+                You are currently &lt;span className="font-bold text-rose-500"&gt;unprotected&lt;/span&gt; against weather disruptions and gig work emergencies.
+              &lt;/p&gt;
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition order-2 sm:order-1 cursor-pointer"
-                >
+              &lt;div className="flex flex-col gap-3"&gt;
+                &lt;button 
+                  onClick={() =&gt; navigate('/policy')}
+                  className="w-full px-6 py-3 rounded-xl font-semibold text-white bg-stone-900 hover:bg-stone-800 transition cursor-pointer"
+                &gt;
+                  Get Protected Now
+                &lt;/button&gt;
+                &lt;button 
+                  onClick={() =&gt; setShowModal(false)}
+                  className="w-full px-6 py-3 rounded-xl font-medium text-stone-500 hover:bg-stone-100 transition cursor-pointer"
+                &gt;
                   Maybe Later
-                </button>
-                <button 
-                  onClick={() => navigate('/policy')}
-                  className="px-6 py-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition order-1 sm:order-2 cursor-pointer"
-                >
-                  Secure My Income Now
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                &lt;/button&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
       )}
-    </main>
+    &lt;/main&gt;
   );
 };
 
