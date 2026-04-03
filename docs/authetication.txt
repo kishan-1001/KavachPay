@@ -1,0 +1,37 @@
+1) Authentication — Signup & Login
+
+User Types Email
+      │
+      ▼
+POST /api/auth/send-otp
+      │── Checks if OTP was sent in last 30s (rate limit)
+      │── Generates a 6-digit OTP
+      │── Saves OTP to DB (expires in 60 seconds)
+      │── Sends email via Brevo SMTP API
+      ▼
+User receives OTP in email
+      │
+      ▼
+POST /api/auth/verify-otp
+      │── Finds matching OTP record in DB
+      │── Checks it hasn't expired
+      │── Marks it as verified = true
+      ▼
+Email is now verified ✅
+      │
+      ▼
+POST /api/auth/register
+      │── Checks: does a verified OTP exist for this email?
+      │── Creates User record in PostgreSQL
+      │── Returns JWT Token (7-day expiry)
+      ▼
+Stored in localStorage as "kavachpay_token"
+
+The JWT Token
+Every subsequent API call attaches this token in the Authorization: Bearer <token> header. The authMiddleware.ts decodes it and attaches:
+
+req.user = { userId, role, city }
+This is how the backend knows WHO is making what request, without hitting the database every time.
+
+Login Flow
+Exact same as above but using POST /api/auth/login-send-otp and POST /api/auth

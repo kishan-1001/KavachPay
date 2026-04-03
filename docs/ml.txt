@@ -1,0 +1,93 @@
+1. The ML Model (Isolation Forest)
+The system is trained on 3,500 examples of human work behavior. It looks for "Anomalies" (patterns that don't fit a real human).
+
+The Input: It takes the timing of your last 10-20 heartbeats.
+The Analysis: A human moves their mouse or clicks with "Jitter" (natural imperfection). A bot script sends a heartbeat exactly every 60.000 seconds.
+The Verdict: If the timing is too perfect, the ML model flags it as a bot and drops your trust score.
+2. The TypeScript Fallback (Rule-Based)
+If your Python ML service is offline, the backend uses a built-in Standard Deviation (Jitter) algorithm.
+
+It calculates the Standard Deviation of your heartbeat gaps in milliseconds.
+Human Jitter: ~400ms to 2000ms (High variance).
+Bot Jitter: < 150ms (Low variance).
+
+The TypeScript Fallback algorithm is the "Internal Math" the backend uses if the complex Python ML service is not reachable. It uses a statistical concept called Standard Deviation to measure the "Jitter" of the heartbeats.
+
+Here is the step-by-step breakdown of that algorithm:
+
+Step 1: Calculate the "Gaps"
+First, the backend takes the last few heartbeats (e.g., 5 heartbeats) and measures the time (in milliseconds) between each one.
+
+Heartbeat #1 to #2: 60,847ms
+Heartbeat #2 to #3: 59,210ms
+Heartbeat #3 to #4: 61,005ms
+Heartbeat #4 to #5: 58,938ms
+Step 2: Find the "Mean" (Average Gap)
+It adds them up and divides by the count:
+
+(60,847 + 59,210 + 61,005 + 58,938) / 4 = 60,000ms
+
+Step 3: Calculate the "Variance" (Difference from Average)
+The algorithm looks at how "far" each gap is from that 60-second average:
+
+(60,847 - 60,000) = +847ms
+(59,210 - 60,000) = -790ms
+(61,005 - 60,000) = +1005ms
+(58,938 - 60,000) = -1062ms
+Step 4: Final "Jitter" Score (Standard Deviation)
+It squares these numbers, averages them, and takes the square root. This results in the Standard Deviation (Jitter).
+
+In this example, the Jitter would be roughly ~900ms.
+Step 5: The "Human vs. Bot" Verdict
+The algorithm then checks that Jitter against these fixed rules:
+
+Jitter Value	Verdict	Logic
+Below 150ms	BOT (0.1 Score)	No human can hit a timer with less than 150ms of variance consistently.
+150ms – 400ms	SUSPICIOUS (0.6 Score)	This could be a very stable bot, or a human on a perfect fiber connection.
+Above 400ms	HUMAN (1.0 Score)	This is the natural "Noise" of a real human's browser and internet.
+In Plain English:
+Think of the algorithm like a musical rhythm detector:
+
+A Bot is like a high-precision computer beat (Perfectly on time).
+A Human is like a live drummer (Sometimes slightly fast, sometimes slightly slow).
+
+
+
+Pillar 1 (Behavioral): 25%
+Pillar 2 (Environmental): 30%
+Pillar 3 (Work-Proof): 30%
+Pillar 4 (Ring Risk): 15%
+if below 0.45 ignore no payouts
+
+
+1. Does the Hash Chain "Break"?
+Mathematically, no. But logically, the system will split your work into two separate sessions.
+
+Session A (Original): Lasts until you stop moving.
+The 30-Minute Gap: Because you were idle for 30 minutes (which is longer than our 15-minute "Resume" window), the Backend closes Session A.
+Session B (New): When you move your mouse again after 30 minutes, the Backend says: "The last session was too long ago. Let's start a Fresh Chain (Minute 1) for this new work period."
+2. Can you get Paid? (The "Recency" vs "Length" Trade-off)
+Whether you get paid depends on when you click the "Analyze Risk" button:
+
+Scenario 1: You click "Analyze Risk" immediately after starting again.
+The Good: Your recencyMins is very low (e.g., 1 minute). This is Perfect. ✅
+The Bad: Your Active Minutes for this session is only 1 or 2 minutes.
+The Result: The Pillar 3 (Work-Proof) score will be very low because you haven't "proven" your work in this specific session yet. Outcome: No Auto-Pay (likely REVIEW status). ❌
+Scenario 2: You work for another 30 mins after the gap and THEN click.
+The Good: You now have 30 minutes of activeMinutes in the current session.
+The Result: The trust score will be much higher. Outcome: Instant Payout! ✅
+3. What happens to your old 30 minutes (Session A)?
+The system only uses the LATEST session to verify a claim.
+
+Why? Because we need to be sure you were working right when the storm hit.
+If you worked for 5 hours, then went to sleep for 3 hours, then claimed for a storm that just started... your old 5 hours of work doesn't "prove" you were affected by the new storm.
+Summary Checklist for the User:
+Step	Action	Status
+0 - 30 mins	Working	Session A Active.
+30 - 60 mins	Idle (Away)	Heartbeats STOP. Session A becomes "Old."
+60 mins	Come Back	NEW Session B starts. (Minute 1).
+If you claim NOW	Claiming	System sees Minute 1 of Session B. Trust is LOW.
+If you work 20m more	Working	Session B has 21 Minutes.
+If you claim THEN	Claiming	System sees Minute 21 of Session B. Trust is HIGH.
+Final Verdict:
+The chain doesn't "break," but the Insurance Window resets if you are idle for too long. To get a perfect payout, a worker should try to stay active (or at least move the mouse every 20 mins) while the storm is approaching!
