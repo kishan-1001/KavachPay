@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   Check,
   ArrowRight,
+  ArrowLeft,
   MapPin,
   Zap,
   BarChart3,
@@ -14,11 +15,14 @@ import {
   Wind,
   AlertCircle,
   DollarSign,
+  ChevronDown,
+  Shield,
 } from 'lucide-react';
 
 export default function HowItWorks() {
   const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const mainProcess = [
     {
@@ -31,7 +35,9 @@ export default function HowItWorks() {
         'Multi-parameter monitoring',
         'Automated event detection',
       ],
-      color: 'from-cyan-500/20 to-blue-500/10',
+      color: 'bg-cyan-50 border-cyan-200',
+      iconBg: 'bg-cyan-100',
+      iconColor: 'text-cyan-600',
     },
     {
       title: 'Coverage Verification',
@@ -43,7 +49,9 @@ export default function HowItWorks() {
         'Regional intelligence',
         'Privacy-first verification (no GPS)',
       ],
-      color: 'from-emerald-500/20 to-teal-500/10',
+      color: 'bg-emerald-50 border-emerald-200',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
     },
     {
       title: 'Payout Triggered',
@@ -55,7 +63,9 @@ export default function HowItWorks() {
         'Daily or per-event payouts',
         'Transaction notification',
       ],
-      color: 'from-amber-500/20 to-orange-500/10',
+      color: 'bg-amber-50 border-amber-200',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
     },
   ];
 
@@ -115,280 +125,342 @@ export default function HowItWorks() {
     },
   ];
 
+  const flowSteps = [
+    {
+      icon: CloudRain,
+      title: 'Weather Event Occurs',
+      description: 'Heavy rain, thunderstorm, cyclone, or extreme temperature detected by IMD',
+      color: 'bg-cyan-100 text-cyan-600',
+    },
+    {
+      icon: MapPin,
+      title: 'Area Coverage Check',
+      description: 'System verifies event impacts your registered coverage zone',
+      color: 'bg-emerald-100 text-emerald-600',
+    },
+    {
+      icon: Zap,
+      title: 'Automated Verification',
+      description: 'Profile verification and policy check happens instantly',
+      color: 'bg-amber-100 text-amber-600',
+    },
+    {
+      icon: DollarSign,
+      title: 'Instant Payout',
+      description: 'Money transferred to your UPI account in under 20 seconds',
+      color: 'bg-green-100 text-green-600',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 relative overflow-hidden">
-      {/* Logo Background */}
-      <div 
-        className="fixed inset-0 z-0 opacity-15 pointer-events-none"
-        style={{
-          backgroundImage: 'url(/KavachPay_logo.png)',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          backgroundSize: '60% 60%',
-          backgroundAttachment: 'fixed',
-        }}
-      />
-      
-      {/* Content wrapper */}
-      <div className="relative z-10">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-8">
-          <button
-            onClick={() => navigate('/')}
-            className="text-lg font-bold text-slate-900"
-          >
-            KavachPay
-          </button>
-          <button
-            onClick={() => navigate(-1)}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50"
-          >
-            Back
-          </button>
-        </div>
+    <div className="min-h-screen bg-stone-50 text-stone-900 font-sans">
+      {/* Navigation */}
+      <header className="sticky top-0 z-50 bg-stone-50/95 backdrop-blur-md border-b border-stone-200">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <button onClick={() => navigate('/')} className="flex items-center gap-3">
+              <img
+                src="/KavachPay_logo.png"
+                alt="KavachPay"
+                className="h-9 w-9 object-contain"
+              />
+              <span className="text-xl font-bold tracking-tight text-stone-900">KavachPay</span>
+            </button>
+
+            {/* Back Button */}
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+          </div>
+        </nav>
       </header>
 
-      {/* Main Content */}
-      <main className="pt-24">
-        {/* Hero Section */}
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-8 sm:py-20">
-          <div className="mb-12 text-center">
-            <h1 className="mb-4 text-4xl font-bold text-slate-900 sm:text-5xl">
-              How KavachPay Works
-            </h1>
-            <p className="text-lg text-slate-600">
-              Smart insurance that pays you when weather disrupts your work
-            </p>
-          </div>
-        </section>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-20 lg:py-28">
+        {/* Background */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-100 rounded-full blur-3xl opacity-40" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-stone-200 rounded-full blur-3xl opacity-50" />
+        </div>
 
-        {/* Main Process Flow */}
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
-          <div className="mb-12 text-center">
-            <h2 className="mb-2 text-3xl font-bold text-slate-900">The Process</h2>
-            <p className="text-slate-600">Three simple steps from detection to payout</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-1.5 mb-6">
+            <Shield className="w-4 h-4 text-emerald-600" />
+            <span className="text-sm font-medium text-emerald-700">How KavachPay Works</span>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-3">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-stone-900 mb-6 text-balance max-w-4xl mx-auto">
+            Smart insurance that pays you when weather disrupts your work
+          </h1>
+
+          <p className="text-lg sm:text-xl text-stone-600 max-w-2xl mx-auto leading-relaxed">
+            From detection to payout in seconds. No paperwork, no delays, just automatic protection.
+          </p>
+        </div>
+      </section>
+
+      {/* Main Process Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">The Process</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
+              Three simple steps from detection to payout
+            </h2>
+          </div>
+
+          {/* Process Cards */}
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
             {mainProcess.map((step, idx) => {
               const Icon = step.icon;
+              const isActive = activeStep === idx;
+              
               return (
-                <div
+                <button
                   key={idx}
                   onClick={() => setActiveStep(idx)}
-                  className={`group cursor-pointer rounded-2xl border-2 p-6 transition-all duration-300 ${
-                    activeStep === idx
-                      ? 'border-blue-500 bg-gradient-to-br ' + step.color + ' shadow-lg'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  onMouseEnter={() => setActiveStep(idx)}
+                  className={`text-left rounded-3xl border-2 p-8 transition-all duration-300 ${
+                    isActive
+                      ? `${step.color} shadow-xl`
+                      : 'bg-white border-stone-200 hover:border-stone-300 hover:shadow-md'
                   }`}
                 >
-                  <div className="mb-4 flex items-center gap-3">
-                    <div
-                      className={`rounded-lg p-3 ${
-                        activeStep === idx ? 'bg-blue-100' : 'bg-slate-100'
-                      }`}
-                    >
-                      <Icon
-                        size={24}
-                        className={activeStep === idx ? 'text-blue-600' : 'text-slate-600'}
-                      />
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${step.iconBg}`}>
+                      <Icon className={`w-7 h-7 ${step.iconColor}`} />
                     </div>
-                    <span className="text-sm font-semibold text-slate-500">Step {idx + 1}</span>
+                    <span className="text-sm font-bold text-stone-400 uppercase tracking-wide">Step {idx + 1}</span>
                   </div>
-                  <h3 className="mb-3 text-xl font-bold text-slate-900">{step.title}</h3>
-                  <p className="mb-4 text-slate-600">{step.description}</p>
 
-                  {activeStep === idx && (
-                    <div className="animate-in fade-in space-y-2 border-t border-slate-200 pt-4">
+                  <h3 className="text-xl font-bold text-stone-900 mb-3">{step.title}</h3>
+                  <p className="text-stone-600 leading-relaxed mb-6">{step.description}</p>
+
+                  {isActive && (
+                    <div className="space-y-3 pt-6 border-t border-stone-200/50">
                       {step.details.map((detail, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <Check size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
-                          <span className="text-sm text-slate-700">{detail}</span>
+                        <div key={i} className="flex items-start gap-3">
+                          <Check className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-stone-700">{detail}</span>
                         </div>
                       ))}
                     </div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Flow Diagram */}
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
-          <h2 className="mb-8 text-center text-3xl font-bold text-slate-900">The Complete Flow</h2>
-          <div className="rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white p-8">
-            <div className="space-y-6">
-              {/* Flow Item 1 */}
-              <div className="flex items-start gap-4">
-                <div className="rounded-lg bg-cyan-100 p-3">
-                  <CloudRain size={24} className="text-cyan-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900">Weather Event Occurs</h4>
-                  <p className="text-sm text-slate-600">
-                    Heavy rain, thunderstorm, cyclone, or extreme temperature detected by IMD
-                  </p>
-                </div>
-              </div>
+      {/* Complete Flow Section */}
+      <section className="py-20 bg-stone-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">Complete Flow</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
+              From weather event to payout
+            </h2>
+          </div>
 
-              <div className="flex justify-center">
-                <ArrowRight size={24} className="rotate-90 text-slate-400" />
-              </div>
-
-              {/* Flow Item 2 */}
-              <div className="flex items-start gap-4">
-                <div className="rounded-lg bg-emerald-100 p-3">
-                  <MapPin size={24} className="text-emerald-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900">Area Coverage Check</h4>
-                  <p className="text-sm text-slate-600">
-                    System verifies event impacts your registered coverage zone
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-center">
-                <ArrowRight size={24} className="rotate-90 text-slate-400" />
-              </div>
-
-              {/* Flow Item 3 */}
-              <div className="flex items-start gap-4">
-                <div className="rounded-lg bg-amber-100 p-3">
-                  <Zap size={24} className="text-amber-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900">Automated Verification</h4>
-                  <p className="text-sm text-slate-600">
-                    Profile verification and policy check happens instantly
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-center">
-                <ArrowRight size={24} className="rotate-90 text-slate-400" />
-              </div>
-
-              {/* Flow Item 4 */}
-              <div className="flex items-start gap-4">
-                <div className="rounded-lg bg-green-100 p-3">
-                  <DollarSign size={24} className="text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900">Instant Payout</h4>
-                  <p className="text-sm text-slate-600">
-                    Money transferred to your UPI account in under 20 seconds
-                  </p>
-                </div>
-              </div>
+          {/* Flow Diagram */}
+          <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-stone-200 p-8 lg:p-12 shadow-sm">
+            <div className="space-y-8">
+              {flowSteps.map((step, idx) => {
+                const Icon = step.icon;
+                return (
+                  <div key={idx}>
+                    <div className="flex items-start gap-6">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${step.color}`}>
+                        <Icon className="w-7 h-7" />
+                      </div>
+                      <div className="flex-1 pt-2">
+                        <h4 className="text-lg font-bold text-stone-900 mb-1">{step.title}</h4>
+                        <p className="text-stone-600">{step.description}</p>
+                      </div>
+                    </div>
+                    {idx < flowSteps.length - 1 && (
+                      <div className="flex justify-start ml-7 my-4">
+                        <div className="w-0.5 h-8 bg-stone-200" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Key Features */}
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
-          <h2 className="mb-12 text-center text-3xl font-bold text-slate-900">
-            Powered by Advanced Technology
-          </h2>
+      {/* Features Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">Technology</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
+              Powered by Advanced Technology
+            </h2>
+          </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Feature Grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {keyFeatures.map((feature, idx) => {
               const Icon = feature.icon;
               return (
-                <div key={idx} className="rounded-xl border border-slate-200 bg-white p-6 hover:shadow-md transition-all duration-300">
-                  <div className="mb-4 rounded-lg bg-blue-100 w-fit p-3">
-                    <Icon size={24} className="text-blue-600" />
+                <div
+                  key={idx}
+                  className="bg-stone-50 rounded-3xl p-8 hover:shadow-lg transition-all duration-300"
+                >
+                  <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mb-6">
+                    <Icon className="w-7 h-7 text-emerald-600" />
                   </div>
-                  <h3 className="mb-2 font-bold text-slate-900">{feature.title}</h3>
-                  <p className="text-sm text-slate-600">{feature.description}</p>
+                  <h3 className="text-lg font-bold text-stone-900 mb-3">{feature.title}</h3>
+                  <p className="text-stone-600 leading-relaxed">{feature.description}</p>
                 </div>
               );
             })}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Claim Example */}
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
-          <div className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 p-8 sm:p-12">
-            <h2 className="mb-6 text-3xl font-bold text-slate-900">Your Benefit Example</h2>
-            <div className="grid gap-8 sm:grid-cols-2">
+      {/* Example Section */}
+      <section className="py-20 bg-stone-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-gradient-to-br from-emerald-50 to-cyan-50 rounded-3xl border border-emerald-200 p-8 lg:p-12">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <h3 className="mb-4 font-bold text-slate-900">Tuesday 2:00 PM</h3>
-                <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <Check size={20} className="text-emerald-600 flex-shrink-0" />
-                    <span className="text-slate-700">5cm rain detected in your area</span>
+                <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">Example</p>
+                <h2 className="text-3xl font-bold text-stone-900 mb-6">See Your Benefit in Action</h2>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4 bg-white/80 rounded-2xl p-4">
+                    <div className="w-10 h-10 bg-stone-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-sm">1</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-stone-900">Tuesday 2:00 PM</p>
+                      <p className="text-sm text-stone-600">Heavy rain (5cm) detected in your area</p>
+                    </div>
                   </div>
-                  <div className="flex gap-3">
-                    <Check size={20} className="text-emerald-600 flex-shrink-0" />
-                    <span className="text-slate-700">You stop work due to weather</span>
+
+                  <div className="flex items-start gap-4 bg-white/80 rounded-2xl p-4">
+                    <div className="w-10 h-10 bg-stone-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-sm">2</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-stone-900">Tuesday 2:00:05 PM</p>
+                      <p className="text-sm text-stone-600">KavachPay verifies weather event</p>
+                    </div>
                   </div>
-                  <div className="flex gap-3">
-                    <Check size={20} className="text-emerald-600 flex-shrink-0" />
-                    <span className="text-slate-700">KavachPay verifies event</span>
-                  </div>
-                  <div className="flex gap-3">
-                    <Check size={20} className="text-emerald-600 flex-shrink-0" />
-                    <span className="text-slate-700">Payout initiated instantly</span>
+
+                  <div className="flex items-start gap-4 bg-white/80 rounded-2xl p-4">
+                    <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Check className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-stone-900">Tuesday 2:00:15 PM</p>
+                      <p className="text-sm text-stone-600">Payout sent to your UPI account</p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="rounded-xl bg-white p-6 shadow-sm">
-                <p className="mb-2 text-sm text-slate-600">Payout received in your account:</p>
-                <p className="mb-4 text-4xl font-bold text-blue-600">₹250 - ₹500</p>
-                <p className="text-xs text-slate-600">
-                  Amount depends on policy tier and disruption severity
-                </p>
+
+              <div className="bg-white rounded-3xl p-8 shadow-lg text-center">
+                <p className="text-sm font-medium text-stone-500 uppercase tracking-wide mb-2">Payout Received</p>
+                <p className="text-5xl lg:text-6xl font-bold text-emerald-600 mb-2">₹250 - ₹500</p>
+                <p className="text-stone-500">Based on policy tier and disruption severity</p>
+
+                <div className="mt-8 pt-8 border-t border-stone-100">
+                  <div className="flex items-center justify-center gap-2 text-emerald-600">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                    <span className="text-sm font-semibold">Transferred in under 20 seconds</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* FAQ */}
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
-          <h2 className="mb-12 text-center text-3xl font-bold text-slate-900">Frequently Asked Questions</h2>
+      {/* FAQ Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">FAQ</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
+              Frequently Asked Questions
+            </h2>
+          </div>
 
+          {/* FAQ List */}
           <div className="space-y-4">
             {faq.map((item, idx) => (
-              <details key={idx} className="group rounded-lg border border-slate-200 bg-white p-4 hover:shadow-md transition-all duration-300">
-                <summary className="flex cursor-pointer items-start justify-between font-semibold text-slate-900">
-                  <span>{item.q}</span>
-                  <span className="ml-4 flex-shrink-0 transition-transform group-open:rotate-180">
-                    ↓
-                  </span>
-                </summary>
-                <p className="mt-4 text-slate-600">{item.a}</p>
-              </details>
+              <div key={idx} className="border border-stone-200 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                  className="w-full flex items-center justify-between p-6 text-left hover:bg-stone-50 transition-colors"
+                >
+                  <span className="text-lg font-semibold text-stone-900 pr-4">{item.q}</span>
+                  <ChevronDown className={`w-5 h-5 text-stone-400 transition-transform flex-shrink-0 ${openFaq === idx ? 'rotate-180' : ''}`} />
+                </button>
+                {openFaq === idx && (
+                  <div className="px-6 pb-6">
+                    <p className="text-stone-600 leading-relaxed">{item.a}</p>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* CTA */}
-        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-8">
-          <div className="rounded-2xl border-2 border-blue-200 bg-gradient-to-r from-blue-600 to-blue-700 p-8 text-center sm:p-12">
-            <h2 className="mb-4 text-3xl font-bold text-white">Ready to Get Protected?</h2>
-            <p className="mb-6 text-lg text-blue-100">
-              Join thousands of gig workers who get guaranteed income during disruptions
-            </p>
-            <button
-              onClick={() => navigate('/signup')}
-              className="rounded-lg bg-white px-8 py-3 font-semibold text-blue-600 shadow-lg transition-all hover:shadow-xl hover:bg-blue-50 cursor-pointer"
-            >
-              Sign Up Now
-            </button>
-          </div>
-        </section>
+      {/* CTA Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-stone-900 rounded-[2.5rem] px-8 py-16 sm:px-12 sm:py-20 text-center relative overflow-hidden">
+            {/* Background Elements */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-stone-500/10 rounded-full blur-3xl" />
 
-        {/* Footer */}
-        <footer className="border-t border-slate-200 bg-slate-50 py-8">
-          <div className="mx-auto max-w-6xl px-4 text-center text-sm text-slate-600 sm:px-8">
-            <p>© 2024 KavachPay. All rights reserved.</p>
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight max-w-3xl mx-auto">
+                Ready to Get <span className="text-emerald-400">Protected?</span>
+              </h2>
+              <p className="mt-6 text-lg text-stone-300 max-w-xl mx-auto">
+                Join thousands of gig workers who get guaranteed income during disruptions.
+              </p>
+
+              <button
+                onClick={() => navigate('/signup')}
+                className="mt-10 group inline-flex items-center gap-2 bg-emerald-400 text-stone-900 text-lg font-semibold px-10 py-4 rounded-full hover:bg-emerald-300 transition-all"
+              >
+                Sign Up Now
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
-        </footer>
-      </main>
-      </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-stone-100 border-t border-stone-200 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm text-stone-500">© 2024 KavachPay Technologies Pvt Ltd. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

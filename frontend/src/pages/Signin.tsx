@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowRight, Loader2, Key } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -7,14 +7,14 @@ const Signin: React.FC = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setInterval>;
     if (countdown > 0) {
       timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
     }
@@ -54,8 +54,9 @@ const Signin: React.FC = () => {
       setSuccess('Login code sent to your email!');
       setStep(2);
       setCountdown(60);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Account not found or limit reached.');
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { error?: string } } };
+      setError(axiosError.response?.data?.error || 'Account not found or limit reached.');
     } finally {
       setLoading(false);
     }
@@ -78,119 +79,157 @@ const Signin: React.FC = () => {
       localStorage.setItem('kavachpay_token', response.data.token);
       localStorage.setItem('kavachpay_user', JSON.stringify(response.data.user));
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Invalid or expired code.');
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { error?: string } } };
+      setError(axiosError.response?.data?.error || 'Invalid or expired code.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900 font-inter flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center justify-center gap-2 text-3xl font-black italic tracking-tighter text-blue-900 group">
-            <img src="/KavachPay_logo.png" alt="Logo" className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110" />
-            <span>KAVACH<span className="text-blue-600">PAY</span></span>
-          </Link>
-          <p className="text-slate-500 mt-2 font-medium">Welcome back to secure protection.</p>
-        </div>
+    <div className="min-h-screen bg-stone-50 text-stone-900 font-sans">
+      {/* Background Elements */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-100 rounded-full blur-3xl opacity-30" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-stone-200 rounded-full blur-3xl opacity-40" />
+      </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
-          <div className="p-8">
-            {error && (
-              <div className="mb-6 bg-rose-50 border border-rose-100 text-rose-600 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-600 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in">
-                {success}
-              </div>
-            )}
+      <div className="min-h-screen flex flex-col">
+        {/* Header */}
+        <header className="sticky top-0 z-50 bg-stone-50/95 backdrop-blur-md border-b border-stone-200">
+          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <Link to="/" className="flex items-center gap-3">
+                <img src="/KavachPay_logo.png" alt="KavachPay" className="h-9 w-9 object-contain" />
+                <span className="text-xl font-bold tracking-tight text-stone-900">KavachPay</span>
+              </Link>
+            </div>
+          </nav>
+        </header>
 
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">{step === 1 ? 'Sign In' : 'Verify Identity'}</h2>
-                <p className="text-sm text-slate-500 mt-1">
-                  {step === 1 ? 'Enter your email to receive a login code.' : `A 6-digit code has been sent to ${email}`}
-                </p>
-              </div>
+        {/* Main Content */}
+        <main className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-md">
+            {/* Welcome Text */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-stone-900 mb-2">Welcome back</h1>
+              <p className="text-stone-500">Sign in to access your protection dashboard.</p>
+            </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={step === 2 && loading}
-                    placeholder="name@example.com"
-                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-70"
-                  />
-                  {step === 2 && (
-                    <button 
-                      onClick={() => setStep(1)} 
-                      className="text-[10px] font-bold text-blue-600 hover:underline uppercase tracking-tight cursor-pointer"
-                    >
-                      Change Email
-                    </button>
-                  )}
-                </div>
+            {/* Form Card */}
+            <div className="bg-white rounded-3xl border border-stone-200 shadow-xl overflow-hidden">
+              <div className="p-8">
+                {error && (
+                  <div className="mb-6 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-600 px-4 py-3 rounded-xl text-sm font-medium">
+                    {success}
+                  </div>
+                )}
 
-                {step === 2 && (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="flex justify-between items-center">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Enter 6-Digit Code</label>
-                      {countdown > 0 && <span className="text-[10px] font-bold text-rose-500 animate-pulse uppercase tracking-widest">Expires in {countdown}s</span>}
-                    </div>
-                    <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
-                      {otp.map((digit, idx) => (
-                        <input 
-                          key={idx}
-                          id={`otp-${idx}`}
-                          type="text"
-                          value={digit}
-                          onChange={(e) => handleOtpChange(idx, e.target.value)}
-                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                          className="h-10 sm:h-12 w-full bg-slate-50 border-2 border-slate-200 rounded-xl text-center text-base sm:text-lg font-bold text-blue-900 focus:border-blue-600 outline-none transition-all cursor-pointer" 
-                          maxLength={1} 
-                          inputMode="numeric"
-                        />
-                      ))}
-                    </div>
-                    <div className="text-center">
-                      {countdown === 0 && (
-                        <button onClick={handleSendLoginOtp} className="text-[11px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer uppercase tracking-wider">
-                          Resend Code
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-stone-900">
+                      {step === 1 ? 'Sign In' : 'Verify Identity'}
+                    </h2>
+                    <p className="text-sm text-stone-500 mt-1">
+                      {step === 1 
+                        ? 'Enter your email to receive a login code.' 
+                        : `A 6-digit code has been sent to ${email}`
+                      }
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-stone-700">Email Address</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={step === 2}
+                        placeholder="name@example.com"
+                        className="w-full h-12 bg-stone-50 border border-stone-200 rounded-xl px-4 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all disabled:opacity-70"
+                      />
+                      {step === 2 && (
+                        <button 
+                          onClick={() => setStep(1)} 
+                          className="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                        >
+                          Change Email
                         </button>
                       )}
                     </div>
+
+                    {step === 2 && (
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm font-semibold text-stone-700">Enter 6-Digit Code</label>
+                          {countdown > 0 && (
+                            <span className="text-xs font-semibold text-amber-600 animate-pulse">
+                              Expires in {countdown}s
+                            </span>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-6 gap-2">
+                          {otp.map((digit, idx) => (
+                            <input 
+                              key={idx}
+                              id={`otp-${idx}`}
+                              type="text"
+                              value={digit}
+                              onChange={(e) => handleOtpChange(idx, e.target.value)}
+                              onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                              className="h-12 w-full bg-stone-50 border-2 border-stone-200 rounded-xl text-center text-lg font-bold text-stone-900 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 outline-none transition-all" 
+                              maxLength={1} 
+                              inputMode="numeric"
+                            />
+                          ))}
+                        </div>
+                        {countdown === 0 && (
+                          <div className="text-center">
+                            <button 
+                              onClick={handleSendLoginOtp} 
+                              className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                            >
+                              Resend Code
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  <button
+                    onClick={step === 1 ? handleSendLoginOtp : handleVerifyLogin}
+                    disabled={loading}
+                    className="w-full h-12 bg-stone-900 text-white rounded-xl font-semibold flex items-center justify-center gap-3 hover:bg-stone-800 transition-all shadow-lg active:scale-[0.98] disabled:opacity-70"
+                  >
+                    {loading ? <Loader2 size={18} className="animate-spin" /> : (
+                      <>
+                        <span>{step === 1 ? 'Get Login Code' : 'Secure Login'}</span>
+                        {step === 1 ? <ArrowRight size={18} /> : <ShieldCheck size={18} />}
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-
-              <button
-                onClick={step === 1 ? handleSendLoginOtp : handleVerifyLogin}
-                disabled={loading}
-                className="w-full h-12 bg-blue-900 text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 transition-all shadow-lg active:scale-[0.98] disabled:opacity-70 cursor-pointer"
-              >
-                {loading ? <Loader2 size={18} className="animate-spin" /> : (
-                  <>
-                    <span>{step === 1 ? 'Get Login Code' : 'Secure Login'}</span>
-                    {step === 1 ? <ArrowRight size={18} /> : <ShieldCheck size={18} />}
-                  </>
-                )}
-              </button>
             </div>
-          </div>
-        </div>
 
-        <p className="mt-8 text-center text-slate-500 text-sm">
-          Don't have an account? <Link to="/signup" className="text-blue-600 font-bold hover:underline">Create one for free</Link>
-        </p>
+            <p className="mt-8 text-center text-stone-500 text-sm">
+              Don&apos;t have an account?{' '}
+              <Link to="/signup" className="text-emerald-600 font-semibold hover:text-emerald-700">
+                Create one for free
+              </Link>
+            </p>
+          </div>
+        </main>
       </div>
-    </main>
+    </div>
   );
 };
 
