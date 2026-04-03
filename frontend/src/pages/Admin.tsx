@@ -509,9 +509,9 @@ const Admin: React.FC = () => {
     const fetchAdminData = async () => {
       try {
         const [statsRes, claimsRes, treasuryRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/claims`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/treasury`, { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch('http://localhost:5000/api/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('http://localhost:5000/api/admin/claims', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('http://localhost:5000/api/admin/treasury', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         if (statsRes.ok && claimsRes.ok && treasuryRes.ok) {
@@ -532,7 +532,7 @@ const Admin: React.FC = () => {
   const handleUpdateStatus = async (id: string, status: string) => {
     const token = localStorage.getItem('kavachpay_token');
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/claims/${id}/status`, {
+      const res = await fetch(`http://localhost:5000/api/admin/claims/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ status, reviewerNotes: 'Manual Admin override.' })
@@ -548,7 +548,7 @@ const Admin: React.FC = () => {
   const handleTopupTreasury = async () => {
     const token = localStorage.getItem('kavachpay_token');
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/treasury/topup`, {
+      const res = await fetch('http://localhost:5000/api/admin/treasury/topup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ amount: topupAmount, note: topupNote })
@@ -556,8 +556,8 @@ const Admin: React.FC = () => {
 
       if (res.ok) {
         const [statsRes, treasuryRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/treasury`, { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch('http://localhost:5000/api/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('http://localhost:5000/api/admin/treasury', { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
         if (statsRes.ok) setStats(await statsRes.json());
         if (treasuryRes.ok) setTreasury(await treasuryRes.json());

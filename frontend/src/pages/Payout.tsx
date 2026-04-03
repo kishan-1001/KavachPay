@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Wallet, CheckCircle2, TrendingUp, BadgeIndianRupee, ClipboardList } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = 'http://localhost:5000';
 
 function PayoutCard({ payout }: { payout: any }) {
   const date = new Date(payout.createdAt);

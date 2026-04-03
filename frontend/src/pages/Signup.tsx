@@ -77,7 +77,7 @@ const Signup: React.FC = () => {
     setError('');
     setSuccess('');
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/send-otp`, {
+      await axios.post('http://localhost:5000/api/auth/send-otp', {
         email: formData.email
       });
       setSuccess('Verification code sent to your email!');
@@ -109,7 +109,7 @@ const Signup: React.FC = () => {
 
       setLoading(true);
       try {
-        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/verify-otp`, {
+        await axios.post('http://localhost:5000/api/auth/verify-otp', {
           email: formData.email,
           otp: enteredOtp
         });
@@ -136,7 +136,7 @@ const Signup: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/register`, {
+      const response = await axios.post('http://localhost:5000/api/auth/register', {
         fullName: formData.fullName,
         email: formData.email,
         phoneNumber: formData.phoneNumber,

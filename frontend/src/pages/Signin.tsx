@@ -52,7 +52,7 @@ const Signin: React.FC = () => {
     setError('');
     setSuccess('');
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/login-send-otp`, { email });
+      await axios.post('http://localhost:5000/api/auth/login-send-otp', { email });
       setSuccess('Login code sent to your email!');
       setStep(2);
       setCountdown(60);
@@ -73,7 +73,7 @@ const Signin: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login-verify`, {
+      const response = await axios.post('http://localhost:5000/api/auth/login-verify', {
         email,
         otp: enteredOtp
       });
