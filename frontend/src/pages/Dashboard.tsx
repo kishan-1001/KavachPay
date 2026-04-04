@@ -68,8 +68,22 @@ const Dashboard: React.FC = () => {
 
             if (profileRes.ok) {
               const profileData = await profileRes.json();
-              setProfile(profileData);
-              localStorage.setItem('kavachpay_user', JSON.stringify(profileData));
+              let cachedUser: any = null;
+              try {
+                const rawCachedUser = localStorage.getItem('kavachpay_user');
+                cachedUser = rawCachedUser ? JSON.parse(rawCachedUser) : null;
+              } catch {
+                cachedUser = null;
+              }
+
+              const mergedProfile = {
+                ...cachedUser,
+                ...profileData,
+                role: profileData.role ?? cachedUser?.role,
+              };
+
+              setProfile(mergedProfile);
+              localStorage.setItem('kavachpay_user', JSON.stringify(mergedProfile));
               return;
             }
           } catch (err) {

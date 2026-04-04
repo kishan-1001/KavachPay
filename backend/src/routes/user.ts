@@ -15,6 +15,7 @@ router.get('/profile', authMiddleware, async (req: AuthRequest, res: Response) =
         id: true,
         fullName: true,
         email: true,
+        role: true,
         phoneNumber: true,
         city: true,
         deliveryPlatform: true,
