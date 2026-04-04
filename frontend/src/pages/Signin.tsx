@@ -3,6 +3,7 @@ import { ShieldCheck, ArrowRight, Loader2, Key } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import OtpAnimationOverlay from '../components/OtpAnimationOverlay';
+import API_BASE_URL from '../lib/api';
 
 const Signin: React.FC = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const Signin: React.FC = () => {
     setError('');
     setSuccess('');
     try {
-      await axios.post('http://localhost:5000/api/auth/login-send-otp', { email });
+      await axios.post(`${API_BASE_URL}/api/auth/login-send-otp`, { email });
       setSuccess('Login code sent to your email!');
       setStep(2);
       setCountdown(60);
@@ -73,7 +74,7 @@ const Signin: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login-verify', {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/login-verify`, {
         email,
         otp: enteredOtp
       });
