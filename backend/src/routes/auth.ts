@@ -306,7 +306,7 @@ router.post('/register', async (req: Request, res: Response) => {
     }
 
     if (isDisposable(email)) {
-      res.status(400).json({ error: 'baby ctrl alt elite is not dump 😂🤣 use a valid mail id' });
+      res.status(400).json({ error: 'baby we are not dumb 😂🤣 use a valid mail id' });
       return;
     }
 

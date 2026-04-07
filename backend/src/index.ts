@@ -21,6 +21,13 @@ const PORT = process.env.PORT || 5000;
 // 🛡️ Security Middleware
 app.use(helmet()); // Sets various HTTP headers for security (XSS, Clickjacking, etc.)
 
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*', // Restrict to your frontend in production
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
+
 // ⚡ Rate Limiting: Prevent brute-force and spam (100 requests per 15 minutes)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
@@ -34,12 +41,6 @@ app.use('/api/', limiter);
 // Needed for accurate req.ip when deployed behind reverse proxies.
 app.set('trust proxy', 1);
 
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*', // Restrict to your frontend in production
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
