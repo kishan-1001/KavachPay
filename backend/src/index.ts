@@ -12,8 +12,6 @@ import sessionRoutes from './routes/session.js';
 import claimRoutes from './routes/claim.js';
 import adminRoutes from './routes/admin.js';
 
-dotenv.config();
-
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 

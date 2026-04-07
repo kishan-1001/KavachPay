@@ -7,7 +7,9 @@
     "dev": "tsx watch src/index.ts",
     "backend": "npm run dev",
     "server": "npm run dev",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:genuine": "tsx scripts/test_genuine_session.ts",
+    "test:fraud":   "tsx scripts/test_fraud_session.ts",
+    "test": "echo \"Error: use test:genuine or test:fraud\" && exit 1"
   },
   "keywords": [],
   "author": "",

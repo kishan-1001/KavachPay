@@ -5,23 +5,25 @@ import prisma from '../prismaClient.js';
 const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
-const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
-const BREVO_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'no-reply@kavachpay.com';
 
 const sendOtpEmail = async (email: string, subject: string, htmlContent: string) => {
-  if (!BREVO_API_KEY) {
+  // Read at call time (not module load time) so dotenv has already run
+  const apiKey = process.env.BREVO_API_KEY || '';
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'no-reply@kavachpay.com';
+
+  if (!apiKey) {
     throw new Error('Email service is not configured.');
   }
 
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
-      'api-key': BREVO_API_KEY,
+      'api-key': apiKey,
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
     body: JSON.stringify({
-      sender: { name: 'KavachPay Security', email: BREVO_SENDER_EMAIL },
+      sender: { name: 'KavachPay Security', email: senderEmail },
       to: [{ email }],
       subject,
       htmlContent
