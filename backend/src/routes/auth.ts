@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { randomInt } from 'crypto';
 import prisma from '../prismaClient.js';
 import { JWT_SECRET } from '../config.js';
+import xss from 'xss';
 
 const router = express.Router();
 
@@ -282,9 +283,9 @@ router.post('/register', async (req: Request, res: Response) => {
        return;
     }
 
-    // 🧹 Basic Input Sanitization (XSS Prevention)
-    const cleanFullName = fullName.replace(/<[^>]*>?/gm, '').trim();
-    const cleanUpiId = (upiId || '').replace(/<[^>]*>?/gm, '').trim();
+    // 🧹 Robust Input Sanitization (XSS Prevention)
+    const cleanFullName = xss(fullName).trim();
+    const cleanUpiId = xss(upiId || '').trim();
 
     // Check verification
     const verification = await prisma.otpVerification.findFirst({

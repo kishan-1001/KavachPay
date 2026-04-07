@@ -8,7 +8,7 @@
     "backend": "npm run dev",
     "server": "npm run dev",
     "test:genuine": "tsx scripts/test_genuine_session.ts",
-    "test:fraud":   "tsx scripts/test_fraud_session.ts",
+    "test:fraud": "tsx scripts/test_fraud_session.ts",
     "test": "echo \"Error: use test:genuine or test:fraud\" && exit 1"
   },
   "keywords": [],
@@ -29,7 +29,8 @@
     "jsonwebtoken": "^9.0.3",
     "razorpay": "^2.9.6",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "xss": "^1.0.15"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
