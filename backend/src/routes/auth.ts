@@ -4,7 +4,24 @@ import { randomInt } from 'crypto';
 import prisma from '../prismaClient.js';
 import { JWT_SECRET } from '../config.js';
 import xss from 'xss';
+import { readFileSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+let disposableEmails: string[] = [];
+try {
+  const filePath = path.join(__dirname, '../../disposable_emails.json');
+  disposableEmails = JSON.parse(readFileSync(filePath, 'utf-8'));
+} catch (e) {
+  console.error('Could not load disposable_emails.json', e);
+}
+
+const isDisposable = (email: string) => {
+  const domain = email.split('@')[1]?.toLowerCase();
+  return domain && disposableEmails.includes(domain);
+};
 const router = express.Router();
 
 const sendOtpEmail = async (email: string, subject: string, htmlContent: string) => {
@@ -42,8 +59,13 @@ router.post('/send-otp', async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) {
-       res.status(400).json({ error: 'Email address is required' });
-       return;
+      res.status(400).json({ error: 'Email address is required' });
+      return;
+    }
+
+    if (isDisposable(email)) {
+      res.status(400).json({ error: 'baby ctrl alt elite is not dumpt 😂🤣 use a valid mail id' });
+      return;
     }
 
     // Rate Limiting: Check if an OTP was sent in the last 30 seconds
@@ -59,7 +81,7 @@ router.post('/send-otp', async (req: Request, res: Response) => {
 
     // Generate 6-digit OTP using cryptographically secure random number generator
     const otp = randomInt(100000, 1000000).toString();
-    
+
     // Invalidate previous unverified OTPs
     await prisma.otpVerification.deleteMany({
       where: { email, verified: false }
@@ -110,7 +132,7 @@ router.post('/send-otp', async (req: Request, res: Response) => {
 router.post('/verify-otp', async (req: Request, res: Response) => {
   try {
     const { email, otp } = req.body;
-    
+
     const record = await prisma.otpVerification.findFirst({
       where: { email, otpCode: otp, verified: false },
       orderBy: { createdAt: 'desc' },
@@ -144,8 +166,8 @@ router.post('/login-send-otp', async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) {
-       res.status(400).json({ error: 'Email address is required' });
-       return;
+      res.status(400).json({ error: 'Email address is required' });
+      return;
     }
 
     // Check if user exists
@@ -170,7 +192,7 @@ router.post('/login-send-otp', async (req: Request, res: Response) => {
     }
 
     const otp = randomInt(100000, 1000000).toString();
-    
+
     await prisma.otpVerification.deleteMany({
       where: { email, verified: false }
     });
@@ -216,7 +238,7 @@ router.post('/login-send-otp', async (req: Request, res: Response) => {
 router.post('/login-verify', async (req: Request, res: Response) => {
   try {
     const { email, otp } = req.body;
-    
+
     const record = await prisma.otpVerification.findFirst({
       where: { email, otpCode: otp, verified: false },
       orderBy: { createdAt: 'desc' },
@@ -279,8 +301,13 @@ router.post('/register', async (req: Request, res: Response) => {
     } = req.body;
 
     if (!fullName || !email || !city || !deliveryPlatform || !vehicleType || !weeklyEarnings) {
-       res.status(400).json({ error: 'Required fields are missing.' });
-       return;
+      res.status(400).json({ error: 'Required fields are missing.' });
+      return;
+    }
+
+    if (isDisposable(email)) {
+      res.status(400).json({ error: 'baby ctrl alt elite is not dump 😂🤣 use a valid mail id' });
+      return;
     }
 
     // 🧹 Robust Input Sanitization (XSS Prevention)
@@ -293,8 +320,8 @@ router.post('/register', async (req: Request, res: Response) => {
     });
 
     if (!verification) {
-       res.status(403).json({ error: 'Email not verified.' });
-       return;
+      res.status(403).json({ error: 'Email not verified.' });
+      return;
     }
 
     // Check if this email is already registered
