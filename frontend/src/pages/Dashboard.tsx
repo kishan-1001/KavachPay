@@ -4,8 +4,10 @@ import {
   ShieldAlert, X, User, Phone, MapPin, Bike, Briefcase, Wallet, LogOut,
   ShieldCheck, TrendingUp, Activity, Cloud, Zap, ChevronRight, Clock,
   Bell, History, CheckCircle2, AlertCircle, Timer, Cpu, Link2, WifiOff,
+  Moon, Sun,
 } from 'lucide-react';
 import API_BASE_URL from '../lib/api';
+import { useTheme } from '../lib/ThemeContext';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type TabId = 'overview' | 'sessions' | 'claims';
@@ -63,6 +65,7 @@ function CoverageBar({ used, total }: { used: number; total: number }) {
 /* ─── Component ───────────────────────────────────────────────────────────── */
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { isDark, toggle: toggleTheme } = useTheme();
 
   /* profile / policy */
   const [profile, setProfile] = useState<any>(() => {
@@ -274,6 +277,13 @@ const Dashboard: React.FC = () => {
             <span className="text-xl font-bold tracking-tight">KavachPay</span>
           </button>
           <div className="flex items-center gap-3">
+            <button
+              onClick={toggleTheme}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="p-2.5 rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 transition cursor-pointer"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button className="p-2.5 rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 transition cursor-pointer">
               <Bell className="w-5 h-5" />
             </button>

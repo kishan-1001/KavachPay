@@ -220,19 +220,20 @@ def _train_ring_gnn(FraudRingGNN, torch) -> None:
     from torch.optim import Adam
 
     rng = np.random.default_rng(42)
-    n_each = 800   # 800 fraud + 800 organic = 1600 total graphs
+    n_each = 1200   # 1200 fraud + 1200 organic = 2400 total graphs (50% more data)
 
     fraud_graphs   = _generate_ring_graphs(n_each, is_fraud=True,  rng=rng)
     organic_graphs = _generate_ring_graphs(n_each, is_fraud=False, rng=rng)
     all_graphs     = fraud_graphs + organic_graphs
     rng.shuffle(all_graphs)
 
-    model = FraudRingGNN(in_features=4, hidden=32)
-    optimizer = Adam(model.parameters(), lr=0.005, weight_decay=1e-4)
+    model = FraudRingGNN(in_features=4, hidden=48)   # larger hidden: richer graph representations
+    optimizer = Adam(model.parameters(), lr=0.003, weight_decay=1e-4)  # lower lr → smoother convergence
     loss_fn = nn.BCELoss()
 
     model.train()
-    for epoch in range(60):
+    n_epochs = 80   # more epochs with lower lr
+    for epoch in range(n_epochs):
         epoch_loss = 0.0
         rng.shuffle(all_graphs)
         for X_np, adj_np, label in all_graphs:
@@ -248,11 +249,10 @@ def _train_ring_gnn(FraudRingGNN, torch) -> None:
             epoch_loss += loss.item()
 
         if (epoch + 1) % 20 == 0:
-            logger.info("GNN training epoch %d/%d  loss=%.4f", epoch + 1, 60, epoch_loss / len(all_graphs))
+            logger.info("GNN training epoch %d/%d  loss=%.4f", epoch + 1, n_epochs, epoch_loss / len(all_graphs))
 
     torch.save(model.state_dict(), RING_GNN_PATH)
-    # Save model architecture params so we can rebuild at load time
-    joblib.dump({"in_features": 4, "hidden": 32}, RING_META_PATH)
+    joblib.dump({"in_features": 4, "hidden": 48}, RING_META_PATH)  # match new hidden dim
     logger.info("GNN saved to %s", RING_GNN_PATH)
 
 
@@ -315,18 +315,20 @@ class ModelHub:
         X = data.copy()
 
         # Label disruption days using actual Indian insurance trigger thresholds
+        # Tuned: IMD heavy rain threshold = 80mm/day for severe disruption
         y = np.zeros(len(data))
-        y += np.clip(precip / 80, 0, 1) * 0.45          # IMD heavy rain: 65mm+
-        y += np.clip((temp - 38) / 12, 0, 1) * 0.20     # Extreme heat: 44°C+
-        y += np.clip((aqi - 120) / 200, 0, 1) * 0.25    # Hazardous AQI: 200+
-        y += np.clip(news_count / 8, 0, 1) * 0.10        # Corroborating news
+        y += np.clip(precip / 80, 0, 1) * 0.50          # IMD heavy rain: 80mm+ (raised weight — primary signal)
+        y += np.clip((temp - 40) / 10, 0, 1) * 0.15     # Extreme heat: 45°C+ (tightened threshold)
+        y += np.clip((aqi - 150) / 150, 0, 1) * 0.20    # Hazardous AQI: 200+ (raised threshold, AQI-only signal)
+        y += np.clip(news_count / 6, 0, 1) * 0.15        # Corroborating news (raised weight)
         y = np.clip(y, 0.0, 1.0)
 
         model = GradientBoostingRegressor(
-            n_estimators=200,
-            learning_rate=0.05,
-            max_depth=4,
+            n_estimators=300,         # more trees → smoother predictions
+            learning_rate=0.04,       # lower lr with more trees = better calibration
+            max_depth=5,              # slightly deeper for weather feature interactions
             subsample=0.8,
+            min_samples_leaf=4,       # prevents overfitting on outlier days
             random_state=42,
         )
         model.fit(X, y)
@@ -341,32 +343,42 @@ class ModelHub:
         rng = np.random.default_rng(11)
 
         # ── Genuine human sessions ──────────────────────────────────────────
-        n_human = 3000
-        # avg gap ~50-70s, jitter ~700-1500ms, heartbeat count 5-70
-        avg_gap_human    = rng.normal(60_000, 7_000, n_human)
-        jitter_human     = np.abs(rng.normal(1_000, 400, n_human)) + 200
-        hb_count_human   = rng.integers(5, 70, n_human)
+        n_human = 5000    # increased: more human variety → better anomaly boundary
+        # avg gap ~50-70s with natural variance, realistic jitter distribution
+        avg_gap_human    = rng.normal(60_000, 8_000, n_human)
+        jitter_human     = np.abs(rng.normal(1_200, 500, n_human)) + 300  # higher realistic jitter
+        hb_count_human   = rng.integers(3, 80, n_human)   # low count is OK (short sessions)
         # Peak hour bias for real workers (login during delivery windows)
         login_hour_human = np.concatenate([
-            rng.integers(11, 15, n_human // 2),   # lunch window
-            rng.integers(18, 23, n_human - n_human // 2),  # dinner window
+            rng.integers(11, 15, n_human // 3),                        # lunch window
+            rng.integers(18, 23, n_human // 3),                        # dinner window
+            rng.integers(8, 11, n_human - 2 * (n_human // 3)),         # morning deliveries
         ])
         X_human = np.column_stack([avg_gap_human, jitter_human, hb_count_human, login_hour_human])
 
         # ── Bot / scripted sessions ─────────────────────────────────────────
-        n_bot = 500
-        # Bots: extremely precise (<80ms jitter), often off-hours, fixed patterns
-        avg_gap_bot  = rng.normal(60_000, 200, n_bot)     # robot-precise
-        jitter_bot   = np.abs(rng.normal(30, 20, n_bot))  # near-zero jitter
-        hb_count_bot = rng.integers(60, 200, n_bot)        # very high — automated
-        login_hour_bot = rng.integers(0, 7, n_bot)         # off-hours submissions
+        n_bot = 800       # increased: more bot variety → harder to game
+        # Bots: extremely precise (<60ms jitter), often off-hours, fixed patterns
+        avg_gap_bot  = rng.normal(60_000, 150, n_bot)     # robot-precise (tighter variance)
+        jitter_bot   = np.abs(rng.normal(20, 15, n_bot))  # near-zero jitter
+        hb_count_bot = rng.integers(50, 250, n_bot)        # very high — automated
+        login_hour_bot = np.concatenate([
+            rng.integers(0, 6, n_bot // 2),                # dead-of-night
+            rng.integers(1, 5, n_bot - n_bot // 2),        # 1-5 AM burst
+        ])
         X_bot = np.column_stack([avg_gap_bot, jitter_bot, hb_count_bot, login_hour_bot])
 
         X = np.vstack([X_human, X_bot])
         # contamination = fraction of bots in training set
         contamination = n_bot / (n_human + n_bot)
 
-        model = IsolationForest(contamination=round(contamination, 3), random_state=11, n_estimators=150)
+        model = IsolationForest(
+            contamination=round(contamination, 3),
+            random_state=11,
+            n_estimators=200,          # more trees → more robust anomaly boundary
+            max_samples='auto',
+            max_features=0.8,          # feature subsampling for diversity
+        )
         model.fit(X)
         joblib.dump(model, FRAUD_MODEL_PATH)
         logger.info(
@@ -380,39 +392,40 @@ class ModelHub:
         from sklearn.ensemble import GradientBoostingClassifier
 
         rng = np.random.default_rng(7)
-        n = 5000
+        n = 8000    # increased: 8k samples → better decision boundary coverage
 
         active_minutes  = rng.integers(1, 121, n)
-        recency_mins    = rng.uniform(0, 120, n)
+        recency_mins    = rng.uniform(0, 60, n)         # tightened: >60min is very stale
         ip_match        = rng.integers(0, 2, n)
         chain_valid     = rng.integers(0, 2, n)
         heartbeat_count = np.maximum(active_minutes + rng.integers(-5, 6, n), 1)
-        # login_hour: bias toward peak delivery hours for genuine workers
+        # login_hour: bias toward real delivery windows for genuine sessions
         login_hour = np.concatenate([
-            rng.integers(11, 15, n // 2),              # lunch-hour genuine workers
-            rng.integers(18, 23, n - n // 2),          # dinner-hour genuine workers
+            rng.integers(10, 15, n // 3),              # lunch-hour genuine workers
+            rng.integers(17, 23, n // 3),              # dinner-hour genuine workers
+            rng.integers(8, 10, n - 2 * (n // 3)),    # morning deliveries
         ])
         rng.shuffle(login_hour)
-        # Off-hours sessions get a score penalty
-        is_peak = ((login_hour >= 11) & (login_hour <= 14)) | ((login_hour >= 18) & (login_hour <= 22))
+        is_peak = ((login_hour >= 10) & (login_hour <= 14)) | ((login_hour >= 17) & (login_hour <= 22))
 
         X = np.column_stack([active_minutes, recency_mins, ip_match, chain_valid, heartbeat_count, login_hour])
 
         score = (
-            np.clip(active_minutes / 45, 0, 1) * 0.30
-            + (1 - np.clip(recency_mins / 40, 0, 1)) * 0.15
-            + ip_match * 0.15
-            + chain_valid * 0.25          # higher weight — most tamper-evident signal
-            + np.clip(heartbeat_count / 60, 0, 1) * 0.05
-            + is_peak.astype(float) * 0.10
+            np.clip(active_minutes / 45, 0, 1) * 0.25       # work time (de-weighted slightly)
+            + (1 - np.clip(recency_mins / 30, 0, 1)) * 0.15 # recency window tightened to 30
+            + ip_match * 0.15                                 # geo-match
+            + chain_valid * 0.30                              # RAISED: most tamper-proof signal
+            + np.clip(heartbeat_count / 50, 0, 1) * 0.05    # beat count
+            + is_peak.astype(float) * 0.10                   # peak hour bonus
         )
-        y = (score > 0.62).astype(int)
+        y = (score > 0.60).astype(int)   # slightly lower threshold → more inclusive of genuine
 
         model = GradientBoostingClassifier(
-            n_estimators=200,
-            learning_rate=0.05,
-            max_depth=4,
+            n_estimators=300,           # more trees
+            learning_rate=0.04,
+            max_depth=5,
             subsample=0.8,
+            min_samples_leaf=3,
             random_state=7,
         )
         model.fit(X, y)
