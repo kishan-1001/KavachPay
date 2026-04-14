@@ -58,7 +58,11 @@ const Signin: React.FC = () => {
       setStep(2);
       setCountdown(60);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Account not found or limit reached.');
+      if (!err.response) {
+        setError('Network error: Could not reach the server. Please check environment variables.');
+      } else {
+        setError(err.response?.data?.error || 'Account not found or limit reached.');
+      }
     } finally {
       setLoading(false);
     }
@@ -87,7 +91,11 @@ const Signin: React.FC = () => {
         navigate('/dashboard');
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Invalid or expired code.');
+      if (!err.response) {
+        setError('Network error: Could not reach the server. Please check environment variables.');
+      } else {
+        setError(err.response?.data?.error || 'Invalid or expired code.');
+      }
     } finally {
       setLoading(false);
     }
