@@ -18,7 +18,7 @@ const OtpAnimationOverlay: React.FC<OtpAnimationOverlayProps> = ({ isVisible }) 
   }));
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/40 backdrop-blur-3xl animate-in fade-in duration-500 overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center animate-in fade-in duration-500 overflow-hidden" style={{ backgroundColor: 'var(--bg-page)' }}>
       <div className="relative flex items-center justify-center w-full h-full">
         {/* Background Particles Burst */}
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">

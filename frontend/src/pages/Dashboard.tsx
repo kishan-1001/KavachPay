@@ -322,15 +322,21 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* ── Stats row ───────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-7">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-7">
           {[
             {
               icon: <Activity className={`w-5 h-5 ${workProofActive ? 'text-emerald-600' : 'text-stone-400'}`} />,
               bg: 'bg-emerald-100',
-              value: `${sessionActiveMinutes} min`,  // ← FIX: uses activeMinutes not sessionAgeMins
+              value: `${sessionActiveMinutes} min`,
               label: 'Active Session',
               dot: true,
               dotOn: workProofActive,
+            },
+            {
+              icon: <Timer className="w-5 h-5 text-indigo-600" />,
+              bg: 'bg-indigo-100',
+              value: `${activityStats.sessionAgeMins ?? 0} min`,
+              label: 'Total Session',
             },
             {
               icon: <Zap className="w-5 h-5 text-blue-600" />,
@@ -774,7 +780,7 @@ const Dashboard: React.FC = () => {
                 {[
                   { icon: <Phone className="w-4 h-4 text-stone-400" />, label: 'Phone', val: profile.phone },
                   { icon: <MapPin className="w-4 h-4 text-stone-400" />, label: 'City', val: profile.city },
-                  { icon: <Briefcase className="w-4 h-4 text-stone-400" />, label: 'Platform', val: profile.gigPlatform },
+                  { icon: <Briefcase className="w-4 h-4 text-stone-400" />, label: 'Platform', val: profile.deliveryPlatform },
                   { icon: <Bike className="w-4 h-4 text-stone-400" />, label: 'Vehicle', val: profile.vehicleType },
                 ].map((row, i) => (
                   <div key={i} className="flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl">

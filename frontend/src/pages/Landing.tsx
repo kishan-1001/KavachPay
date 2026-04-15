@@ -9,13 +9,16 @@ import {
   CloudRain,
   Coins,
   Globe,
+  Moon,
   Shield,
   ShieldCheck,
   Smartphone,
   Star,
+  Sun,
   TrendingUp,
   Zap,
 } from 'lucide-react';
+import { useTheme } from '../lib/ThemeContext';
 
 const features = [
   {
@@ -144,6 +147,7 @@ const disruptionFeed = [
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const { isDark, toggle } = useTheme();
   const [activeFeature, setActiveFeature] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -155,7 +159,7 @@ const Landing: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 font-sans">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans">
       {/* Announcement Bar */}
       <div className="bg-stone-900 text-white py-2.5 px-4 text-center">
         <div className="flex items-center justify-center gap-2 text-xs sm:text-sm flex-wrap">
@@ -169,7 +173,7 @@ const Landing: React.FC = () => {
       </div>
 
       {/* Navigation */}
-      <header className="sticky top-0 z-50 bg-stone-50/95 backdrop-blur-md border-b border-stone-200">
+      <header className="sticky top-0 z-50 bg-stone-50/95 dark:bg-stone-950/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-3 py-4 sm:h-16 sm:flex-row sm:items-center sm:justify-between">
             {/* Logo */}
@@ -179,21 +183,21 @@ const Landing: React.FC = () => {
                 alt="KavachPay"
                 className="h-9 w-9 object-contain"
               />
-              <span className="text-xl font-bold tracking-tight text-stone-900">KavachPay</span>
+              <span className="text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">KavachPay</span>
             </div>
 
             {/* Nav Links - Desktop */}
             <div className="hidden md:flex items-center gap-8">
-              <button onClick={() => navigate('/howitworks')} className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors cursor-pointer">
+              <button onClick={() => navigate('/howitworks')} className="text-sm font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer">
                 How it Works
               </button>
-              <a href="#features" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">
+              <a href="#features" className="text-sm font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">
                 Features
               </a>
-              <a href="#pricing" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">
+              <a href="#pricing" className="text-sm font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">
                 Pricing
               </a>
-              <a href="#faq" className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">
+              <a href="#faq" className="text-sm font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">
                 FAQ
               </a>
             </div>
@@ -201,14 +205,21 @@ const Landing: React.FC = () => {
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
               <button
+                onClick={toggle}
+                aria-label="Toggle theme"
+                className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button
                 onClick={() => navigate('/signin')}
-                className="text-sm font-semibold text-stone-700 hover:text-stone-900 transition-colors px-3 sm:px-4 py-2 cursor-pointer"
+                className="text-sm font-semibold text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors px-3 sm:px-4 py-2 cursor-pointer"
               >
                 Log in
               </button>
               <button
                 onClick={() => navigate('/signup')}
-                className="bg-stone-900 text-white text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full hover:bg-stone-800 transition-all hover:shadow-lg active:scale-[0.98] cursor-pointer"
+                className="bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full hover:bg-stone-800 dark:hover:bg-white transition-all hover:shadow-lg active:scale-[0.98] cursor-pointer"
               >
                 Get Started
               </button>
@@ -242,7 +253,7 @@ const Landing: React.FC = () => {
               </h1>
 
               {/* Subheadline */}
-              <p className="mt-6 text-lg sm:text-xl text-stone-600 leading-relaxed max-w-xl">
+              <p className="mt-6 text-lg sm:text-xl text-stone-600 dark:text-stone-400 leading-relaxed max-w-xl">
                 The first AI-powered smart insurance for delivery partners and gig workers. 
                 We pay you when weather or city conditions stop you from working.
               </p>
@@ -258,25 +269,25 @@ const Landing: React.FC = () => {
                 </button>
                 <button
                   onClick={() => navigate('/howitworks')}
-                  className="inline-flex items-center justify-center gap-2 bg-white text-stone-900 text-base font-semibold px-8 py-4 rounded-full border-2 border-stone-200 hover:border-stone-300 hover:bg-stone-50 transition-all cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 text-base font-semibold px-8 py-4 rounded-full border-2 border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-700 transition-all cursor-pointer"
                 >
                   See How it Works
                 </button>
               </div>
 
               {/* Trust Indicators */}
-              <div className="mt-10 flex flex-wrap items-center gap-6 pt-8 border-t border-stone-200">
+              <div className="mt-10 flex flex-wrap items-center gap-6 pt-8 border-t border-stone-200 dark:border-stone-800">
                 <div className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-emerald-600" />
-                  <span className="text-sm font-medium text-stone-600">Instant UPI Payouts</span>
+                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">Instant UPI Payouts</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-emerald-600" />
-                  <span className="text-sm font-medium text-stone-600">No Credit Check</span>
+                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">No Credit Check</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="w-5 h-5 text-emerald-600" />
-                  <span className="text-sm font-medium text-stone-600">No GPS Tracking</span>
+                  <span className="text-sm font-medium text-stone-600 dark:text-stone-400">No GPS Tracking</span>
                 </div>
               </div>
             </div>
@@ -293,17 +304,17 @@ const Landing: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-transparent to-transparent" />
                 
                 {/* Floating Card - Payout */}
-                <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
+                <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
                   <div className="flex items-center gap-3 sm:gap-4">
                     <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
                       <TrendingUp className="w-6 h-6 text-emerald-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">Payout Triggered</p>
-                      <p className="text-xl font-bold text-stone-900">₹850 sent via UPI</p>
+                      <p className="text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wide">Payout Triggered</p>
+                      <p className="text-xl font-bold text-stone-900 dark:text-stone-100">₹850 sent via UPI</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-stone-500">Just now</p>
+                      <p className="text-xs text-stone-500 dark:text-stone-400">Just now</p>
                       <p className="text-sm font-medium text-emerald-600">Verified</p>
                     </div>
                   </div>
@@ -335,15 +346,15 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 lg:py-28 bg-stone-50">
+      <section id="features" className="py-20 lg:py-28 bg-stone-50 dark:bg-stone-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
             <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">Protection Engine</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight text-balance">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 dark:text-stone-100 tracking-tight text-balance">
               Built for real disruptions, not assumptions.
             </h2>
-            <p className="mt-5 text-lg text-stone-600 leading-relaxed">
+            <p className="mt-5 text-lg text-stone-600 dark:text-stone-400 leading-relaxed">
               Transparent verification before every payout. Your protection stays reliable with real data.
             </p>
           </div>
@@ -362,8 +373,8 @@ const Landing: React.FC = () => {
                     onMouseEnter={() => setActiveFeature(idx)}
                     className={`w-full text-left p-6 rounded-2xl transition-all duration-300 cursor-pointer ${
                       isActive 
-                        ? 'bg-white shadow-xl border-2 border-emerald-200' 
-                        : 'bg-white/50 border-2 border-transparent hover:bg-white hover:shadow-md'
+                        ? 'bg-white dark:bg-stone-800 shadow-xl border-2 border-emerald-200 dark:border-emerald-700' 
+                        : 'bg-white/50 dark:bg-stone-900/50 border-2 border-transparent hover:bg-white dark:hover:bg-stone-800 hover:shadow-md'
                     }`}
                   >
                     <div className="flex items-start gap-4">
@@ -373,8 +384,8 @@ const Landing: React.FC = () => {
                         <Icon className="w-6 h-6" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-stone-900">{feature.title}</h3>
-                        <p className="mt-1 text-stone-600 leading-relaxed">{feature.description}</p>
+                        <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100">{feature.title}</h3>
+                        <p className="mt-1 text-stone-600 dark:text-stone-400 leading-relaxed">{feature.description}</p>
                       </div>
                     </div>
                   </button>
@@ -416,15 +427,15 @@ const Landing: React.FC = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 lg:py-28 bg-white">
+      <section className="py-20 lg:py-28 bg-white dark:bg-stone-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
             <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">How KavachPay Works</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight text-balance">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 dark:text-stone-100 tracking-tight text-balance">
               From signup to payout, designed for speed.
             </h2>
-            <p className="mt-5 text-lg text-stone-600 leading-relaxed">
+            <p className="mt-5 text-lg text-stone-600 dark:text-stone-400 leading-relaxed">
               A simple 3-step flow: easy onboarding, invisible monitoring, instant payouts.
             </p>
           </div>
@@ -440,15 +451,15 @@ const Landing: React.FC = () => {
                     <div className="hidden md:block absolute top-10 left-[60%] w-full h-0.5 bg-gradient-to-r from-emerald-300 to-stone-200" />
                   )}
                   
-                  <div className="relative bg-stone-50 rounded-3xl p-6 sm:p-8 hover:shadow-xl transition-shadow">
+                  <div className="relative bg-stone-50 dark:bg-stone-800 rounded-3xl p-6 sm:p-8 hover:shadow-xl transition-shadow">
                     <div className="flex items-center gap-4 mb-6">
-                      <span className="text-5xl font-bold text-stone-200">{step.number}</span>
+                      <span className="text-5xl font-bold text-stone-200 dark:text-stone-700">{step.number}</span>
                       <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center">
                         <Icon className="w-7 h-7 text-emerald-600" />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-bold text-stone-900 mb-3">{step.title}</h3>
-                    <p className="text-stone-600 leading-relaxed">{step.description}</p>
+                    <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-3">{step.title}</h3>
+                    <p className="text-stone-600 dark:text-stone-400 leading-relaxed">{step.description}</p>
                   </div>
                 </div>
               );
@@ -511,15 +522,15 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 lg:py-28 bg-white">
+      <section id="pricing" className="py-20 lg:py-28 bg-white dark:bg-stone-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
             <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">Pricing Plans</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight mb-6">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 dark:text-stone-100 tracking-tight mb-6">
               Simple, affordable protection for every worker
             </h2>
-            <p className="text-lg text-stone-600 leading-relaxed">
+            <p className="text-lg text-stone-600 dark:text-stone-400 leading-relaxed">
               Choose the plan that fits your work schedule and coverage needs. 
               No hidden fees, no long-term contracts.
             </p>
@@ -532,8 +543,8 @@ const Landing: React.FC = () => {
                 key={idx}
                 className={`relative flex flex-col p-8 rounded-[2.5rem] transition-all duration-300 ${
                   plan.recommended 
-                    ? 'bg-white shadow-[0_32px_64px_-16px_rgba(16,185,129,0.1)] border-2 border-emerald-500 md:scale-105 z-10' 
-                    : 'bg-white border border-stone-200 hover:border-emerald-200 hover:shadow-xl'
+                    ? 'bg-white dark:bg-stone-800 shadow-[0_32px_64px_-16px_rgba(16,185,129,0.1)] border-2 border-emerald-500 md:scale-105 z-10' 
+                    : 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:border-emerald-200 dark:hover:border-emerald-700 hover:shadow-xl'
                 }`}
               >
                 {plan.recommended && (
@@ -544,7 +555,7 @@ const Landing: React.FC = () => {
                 
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-2xl font-bold text-stone-900">{plan.name}</h3>
+                    <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{plan.name}</h3>
                     {plan.recommended && (
                       <span className="bg-emerald-50 text-emerald-600 p-1.5 rounded-lg border border-emerald-100">
                         <TrendingUp className="w-5 h-5" />
@@ -552,8 +563,8 @@ const Landing: React.FC = () => {
                     )}
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-5xl font-bold text-stone-900">₹{plan.price}</span>
-                    <span className="text-stone-500 font-medium">/{plan.period}</span>
+                    <span className="text-5xl font-bold text-stone-900 dark:text-stone-100">₹{plan.price}</span>
+                    <span className="text-stone-500 dark:text-stone-400 font-medium">/{plan.period}</span>
                   </div>
                 </div>
 
@@ -569,7 +580,7 @@ const Landing: React.FC = () => {
                       <div className="mt-1 bg-emerald-500 rounded-full p-0.5 shadow-sm">
                         <Check className="w-3.5 h-3.5 text-white" />
                       </div>
-                      <span className="text-base text-stone-600 leading-tight">{feature}</span>
+                      <span className="text-base text-stone-600 dark:text-stone-400 leading-tight">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -589,9 +600,9 @@ const Landing: React.FC = () => {
           </div>
           
           <div className="mt-16 text-center">
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-stone-100 rounded-full border border-stone-200">
+            <div className="inline-flex items-center gap-2 px-6 py-3 bg-stone-100 dark:bg-stone-800 rounded-full border border-stone-200 dark:border-stone-700">
               <Zap className="w-4 h-4 text-amber-500" />
-              <p className="text-stone-600 text-sm font-medium">
+              <p className="text-stone-600 dark:text-stone-400 text-sm font-medium">
                 All plans include IMD verification and under 20-second UPI payouts.
               </p>
             </div>
@@ -600,12 +611,12 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 lg:py-28 bg-stone-50">
+      <section className="py-20 lg:py-28 bg-stone-50 dark:bg-stone-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
             <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">Testimonials</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight text-balance">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 dark:text-stone-100 tracking-tight text-balance">
               Trusted by thousands of gig workers.
             </h2>
           </div>
@@ -613,7 +624,7 @@ const Landing: React.FC = () => {
           {/* Testimonial Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {testimonials.map((testimonial, idx) => (
-              <div key={idx} className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-shadow">
+              <div key={idx} className="bg-white dark:bg-stone-800 rounded-3xl p-8 shadow-sm hover:shadow-xl transition-shadow">
                 {/* Stars */}
                 <div className="flex gap-1 mb-6">
                   {[...Array(testimonial.rating)].map((_, i) => (
@@ -621,13 +632,13 @@ const Landing: React.FC = () => {
                   ))}
                 </div>
                 
-                <blockquote className="text-lg text-stone-700 leading-relaxed mb-6">
+                <blockquote className="text-lg text-stone-700 dark:text-stone-300 leading-relaxed mb-6">
                   &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
                 
-                <div className="pt-6 border-t border-stone-100">
-                  <p className="font-semibold text-stone-900">{testimonial.author}</p>
-                  <p className="text-sm text-stone-500">{testimonial.role}</p>
+                <div className="pt-6 border-t border-stone-100 dark:border-stone-700">
+                  <p className="font-semibold text-stone-900 dark:text-stone-100">{testimonial.author}</p>
+                  <p className="text-sm text-stone-500 dark:text-stone-400">{testimonial.role}</p>
                 </div>
               </div>
             ))}
@@ -636,12 +647,12 @@ const Landing: React.FC = () => {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20 lg:py-28 bg-white">
+      <section id="faq" className="py-20 lg:py-28 bg-white dark:bg-stone-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
           <div className="text-center mb-16">
             <p className="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-3">FAQ</p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
               Common questions
             </h2>
           </div>
@@ -649,17 +660,17 @@ const Landing: React.FC = () => {
           {/* FAQ Accordion */}
           <div className="space-y-4">
             {faqs.map((faq, idx) => (
-              <div key={idx} className="border border-stone-200 rounded-2xl overflow-hidden">
+              <div key={idx} className="border border-stone-200 dark:border-stone-700 rounded-2xl overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full flex items-center justify-between p-6 text-left hover:bg-stone-50 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between p-6 text-left hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors cursor-pointer"
                 >
-                  <span className="text-lg font-semibold text-stone-900 pr-4">{faq.question}</span>
+                  <span className="text-lg font-semibold text-stone-900 dark:text-stone-100 pr-4">{faq.question}</span>
                   <ChevronRight className={`w-5 h-5 text-stone-400 transition-transform ${openFaq === idx ? 'rotate-90' : ''}`} />
                 </button>
                 {openFaq === idx && (
                   <div className="px-6 pb-6">
-                    <p className="text-stone-600 leading-relaxed">{faq.answer}</p>
+                    <p className="text-stone-600 dark:text-stone-400 leading-relaxed">{faq.answer}</p>
                   </div>
                 )}
               </div>
@@ -704,7 +715,7 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-stone-100 border-t border-stone-200">
+      <footer className="bg-stone-100 dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
             {/* Brand */}
@@ -715,51 +726,51 @@ const Landing: React.FC = () => {
                   alt="KavachPay"
                   className="h-8 w-8 object-contain"
                 />
-                <span className="text-lg font-bold text-stone-900">KavachPay</span>
+                <span className="text-lg font-bold text-stone-900 dark:text-stone-100">KavachPay</span>
               </div>
-              <p className="text-sm text-stone-600 leading-relaxed">
+              <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
                 India&apos;s leading income protection platform for the gig economy.
               </p>
             </div>
 
             {/* Company */}
             <div>
-              <h4 className="font-semibold text-stone-900 mb-4">Company</h4>
+              <h4 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">Company</h4>
               <ul className="space-y-3">
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">About Us</a></li>
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">Careers</a></li>
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">Blog</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">About Us</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Careers</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Blog</a></li>
               </ul>
             </div>
 
             {/* Product */}
             <div>
-              <h4 className="font-semibold text-stone-900 mb-4">Product</h4>
+              <h4 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">Product</h4>
               <ul className="space-y-3">
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">How it Works</a></li>
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">Pricing</a></li>
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">Claims API</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">How it Works</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Pricing</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Claims API</a></li>
               </ul>
             </div>
 
             {/* Support */}
             <div>
-              <h4 className="font-semibold text-stone-900 mb-4">Support</h4>
+              <h4 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">Support</h4>
               <ul className="space-y-3">
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">Help Center</a></li>
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">Contact</a></li>
-                <li><a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Help Center</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Contact</a></li>
+                <li><a href="#" className="text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Privacy Policy</a></li>
               </ul>
             </div>
           </div>
 
           {/* Bottom Bar */}
-          <div className="mt-12 pt-8 border-t border-stone-200 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-stone-500">© 2024 KavachPay Technologies Pvt Ltd. All rights reserved.</p>
+          <div className="mt-12 pt-8 border-t border-stone-200 dark:border-stone-800 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-stone-500 dark:text-stone-500">© 2024 KavachPay Technologies Pvt Ltd. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <a href="#" className="text-sm text-stone-500 hover:text-stone-900 transition-colors">Terms</a>
-              <a href="#" className="text-sm text-stone-500 hover:text-stone-900 transition-colors">Privacy</a>
-              <a href="#" className="text-sm text-stone-500 hover:text-stone-900 transition-colors">Cookies</a>
+              <a href="#" className="text-sm text-stone-500 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Terms</a>
+              <a href="#" className="text-sm text-stone-500 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Privacy</a>
+              <a href="#" className="text-sm text-stone-500 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors">Cookies</a>
             </div>
           </div>
         </div>

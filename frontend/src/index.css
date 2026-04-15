@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Make dark: utilities respond to html.dark class, not OS preference */
+@variant dark (&:where(.dark, .dark *));
+
 /* ─── Theme tokens ─────────────────────────────────────────────────────────
    All pages use these variables. Swapping .dark on <html> flips everything.
    ───────────────────────────────────────────────────────────────────────── */
@@ -38,11 +41,11 @@
 }
 
 html.dark {
-  /* Backgrounds */
-  --bg-page:        #0c0a09; /* stone-950 */
-  --bg-card:        #1c1917; /* stone-900 */
-  --bg-card2:       #292524; /* stone-800 */
-  --bg-nav:         rgba(12,10,9,0.90);
+  /* Backgrounds — warm charcoal, not pitch black */
+  --bg-page:        #111113;
+  --bg-card:        #1d1d20;
+  --bg-card2:       #26252a;
+  --bg-nav:         rgba(17,17,19,0.92);
 
   /* Borders */
   --border:         #44403c;
@@ -78,16 +81,6 @@ html.dark {
   --color-slate-50: var(--bg-card2);
   --color-slate-200: var(--border);
 
-  --color-stone-900: var(--text-primary);
-  --color-stone-800: #e5e4e0;
-  --color-stone-700: #c7c4bf;
-  --color-stone-600: #a8a29e;
-  --color-stone-500: var(--text-secondary);
-  --color-stone-400: var(--text-muted);
-  --color-slate-900: var(--text-primary);
-  --color-slate-700: #c7c4bf;
-  --color-slate-500: var(--text-secondary);
-  --color-blue-900: #93c5fd;
 
   /* Rich Color Backgrounds Map */
   --color-emerald-50: #022c22;
@@ -114,6 +107,22 @@ html.dark {
   --color-rose-600: #fb7185;
   --color-rose-700: #fb7185;
 }
+
+/* ─── Dark text overrides (selector-based, safe — doesn't affect bg-* classes) ─ */
+html.dark .text-stone-900,
+html.dark .text-stone-950 { color: #f2f2f4; }
+html.dark .text-stone-800 { color: #e4e4e8; }
+html.dark .text-stone-700 { color: #c4c4cc; }
+html.dark .text-stone-600 { color: #9d9da8; }
+html.dark .text-stone-500 { color: #9d9da8; }
+html.dark .text-stone-400 { color: #6b6b78; }
+html.dark .text-slate-900,
+html.dark .text-slate-800 { color: #f2f2f4; }
+html.dark .text-slate-700 { color: #c4c4cc; }
+html.dark .text-slate-500 { color: #9d9da8; }
+html.dark .text-slate-400 { color: #6b6b78; }
+html.dark .text-blue-900  { color: #93c5fd; }
+html.dark .text-blue-600  { color: #60a5fa; }
 
 /* ─── Apply tokens to raw HTML ──────────────────────────────────────────── */
 body {
@@ -148,7 +157,11 @@ body {
 
 html {
   -webkit-text-size-adjust: 100%;
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 #root {

@@ -160,22 +160,22 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900 font-inter">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-950 text-slate-900 dark:text-stone-100 font-inter">
       <div className="mx-auto w-full max-w-2xl px-4 pb-12 pt-6 sm:pt-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
-          <Link to="/" className="flex items-center gap-2 text-2xl font-black italic tracking-tighter text-blue-900 group">
+          <Link to="/" className="flex items-center gap-2 text-2xl font-black italic tracking-tighter text-blue-900 dark:text-blue-300 group">
             <img src="/KavachPay_logo.png" alt="Logo" className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-110" />
             <span>KAVACH<span className="text-blue-600">PAY</span></span>
           </Link>
-          <div className="hidden sm:block text-sm text-slate-500">
-            Already have an account? <Link to="/signin" className="font-semibold text-blue-900 cursor-pointer hover:underline">Log In</Link>
+          <div className="hidden sm:block text-sm text-slate-500 dark:text-stone-400">
+            Already have an account? <Link to="/signin" className="font-semibold text-blue-900 dark:text-blue-300 cursor-pointer hover:underline">Log In</Link>
           </div>
         </div>
 
         {/* Progress Tracker */}
         <div className="mb-10">
           <div className="flex justify-between items-center relative px-2">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-slate-200 z-0"></div>
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-slate-200 dark:bg-stone-700 z-0"></div>
             <div
               className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-blue-600 transition-all duration-500 ease-out z-0"
               style={{ width: `${(step - 1) * 50}%` }}
@@ -183,10 +183,10 @@ const Signup: React.FC = () => {
 
             {[1, 2, 3].map((s) => (
               <div key={s} className="relative z-10 flex flex-col items-center">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 ${step >= s ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-110' : 'bg-white border-2 border-slate-200 text-slate-400'}`}>
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 ${step >= s ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 scale-110' : 'bg-white dark:bg-stone-800 border-2 border-slate-200 dark:border-stone-600 text-slate-400 dark:text-stone-500'}`}>
                   {step > s ? '✓' : s}
                 </div>
-                <span className={`mt-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${step >= s ? 'text-blue-900' : 'text-slate-400'}`}>
+                <span className={`mt-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${step >= s ? 'text-blue-900 dark:text-blue-400' : 'text-slate-400 dark:text-stone-600'}`}>
                   {s === 1 ? 'Verify' : s === 2 ? 'Details' : 'Wallet'}
                 </span>
               </div>
@@ -194,15 +194,15 @@ const Signup: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden shadow-slate-200/50">
+        <div className="bg-white dark:bg-stone-900 rounded-3xl border border-slate-200 dark:border-stone-700 shadow-xl overflow-hidden shadow-slate-200/50">
           <div className="p-6 sm:p-8">
             {error && (
-              <div className="mb-6 bg-rose-50 border border-rose-100 text-rose-600 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in duration-300">
+              <div className="mb-6 bg-rose-50 dark:bg-rose-950 border border-rose-100 dark:border-rose-800 text-rose-600 dark:text-rose-400 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in duration-300">
                 {error}
               </div>
             )}
             {success && (
-              <div className="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-600 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in duration-300">
+              <div className="mb-6 bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in duration-300">
                 {success}
               </div>
             )}
@@ -211,37 +211,37 @@ const Signup: React.FC = () => {
             {step === 1 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Identity Verification</h2>
-                  <p className="text-slate-500 mt-1">Start by securing your account with email OTP.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-stone-100">Identity Verification</h2>
+                  <p className="text-slate-500 dark:text-stone-400 mt-1">Start by securing your account with email OTP.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Full Name</label>
+                    <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">Full Name</label>
                     <input
                       type="text"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
                       placeholder="e.g. Kishan Roy"
-                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
+                      className="w-full h-12 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-600 dark:text-stone-100 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-stone-500"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Phone Number</label>
+                    <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">Phone Number</label>
                     <input
                       type="tel"
                       name="phoneNumber"
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
                       placeholder="e.g. +91 8511705401"
-                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400"
+                      className="w-full h-12 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-600 dark:text-stone-100 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-stone-500"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Email Address</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">Email Address</label>
                   <div className="relative group">
                     <input
                       type="email"
@@ -249,7 +249,7 @@ const Signup: React.FC = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="name@gmail.com"
-                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 pr-32 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                      className="w-full h-12 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-600 dark:text-stone-100 rounded-xl px-4 pr-32 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                     />
                     <button
                       type="button"
@@ -265,7 +265,7 @@ const Signup: React.FC = () => {
                 {otpSent && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="flex justify-between items-center">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Enter 6-Digit Code</label>
+                      <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">Enter 6-Digit Code</label>
                       {countdown > 0 && <span className="text-[10px] font-bold text-rose-500 animate-pulse uppercase tracking-widest">Expires in {countdown}s</span>}
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
@@ -277,7 +277,7 @@ const Signup: React.FC = () => {
                           value={digit}
                           onChange={(e) => handleOtpChange(idx, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                          className="h-10 sm:h-14 w-full bg-slate-50 border-2 border-slate-200 rounded-xl text-center text-lg sm:text-xl font-bold text-blue-900 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none transition-all"
+                          className="h-10 sm:h-14 w-full bg-slate-50 dark:bg-stone-800 border-2 border-slate-200 dark:border-stone-600 rounded-xl text-center text-lg sm:text-xl font-bold text-blue-900 dark:text-blue-300 focus:border-blue-600 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900 outline-none transition-all"
                           maxLength={1}
                           inputMode="numeric"
                         />
@@ -292,18 +292,18 @@ const Signup: React.FC = () => {
             {step === 2 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Work Environment</h2>
-                  <p className="text-slate-500 mt-1">Select your primary delivery stats.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-stone-100">Work Environment</h2>
+                  <p className="text-slate-500 dark:text-stone-400 mt-1">Select your primary delivery stats.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Platform</label>
+                    <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">Platform</label>
                     <select
                       name="deliveryPlatform"
                       value={formData.deliveryPlatform}
                       onChange={handleInputChange}
-                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm outline-none focus:border-blue-500"
+                      className="w-full h-12 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-600 dark:text-stone-100 rounded-xl px-4 text-sm outline-none focus:border-blue-500"
                     >
                       <option value="Zomato">Zomato</option>
                       <option value="Swiggy">Swiggy</option>
@@ -312,12 +312,12 @@ const Signup: React.FC = () => {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">City</label>
+                    <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">City</label>
                     <select
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
-                      className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm outline-none focus:border-blue-500"
+                      className="w-full h-12 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-600 dark:text-stone-100 rounded-xl px-4 text-sm outline-none focus:border-blue-500"
                     >
                       <option value="Mumbai">Mumbai</option>
                       <option value="Delhi">Delhi</option>
@@ -329,7 +329,7 @@ const Signup: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Approx Weekly Earnings (₹)</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">Approx Weekly Earnings (₹)</label>
                   <input
                     type="range"
                     name="weeklyEarnings"
@@ -338,11 +338,11 @@ const Signup: React.FC = () => {
                     step="500"
                     value={formData.weeklyEarnings}
                     onChange={handleInputChange}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-2 bg-slate-200 dark:bg-stone-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
-                  <div className="flex justify-between font-bold text-blue-900 mt-2">
+                  <div className="flex justify-between font-bold text-blue-900 dark:text-blue-400 mt-2">
                     <span>₹1,000</span>
-                    <span className="bg-blue-100 px-3 py-1 rounded-full text-sm">₹{formData.weeklyEarnings.toLocaleString()}</span>
+                    <span className="bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-full text-sm">₹{formData.weeklyEarnings.toLocaleString()}</span>
                     <span>₹15,000</span>
                   </div>
                 </div>
@@ -353,40 +353,40 @@ const Signup: React.FC = () => {
             {step === 3 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
                 <div className="text-center">
-                  <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                  <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400 rounded-3xl flex items-center justify-center mx-auto mb-4">
                     <ShieldCheck size={40} />
                   </div>
-                  <h2 className="text-2xl font-bold text-slate-900">Payout Destination</h2>
-                  <p className="text-slate-500 mt-1">Instant claim settlements to your UPI ID.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-stone-100">Payout Destination</h2>
+                  <p className="text-slate-500 dark:text-stone-400 mt-1">Instant claim settlements to your UPI ID.</p>
                 </div>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">UPI ID for Settlements</label>
+                    <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">UPI ID for Settlements</label>
                     <input
                       type="text"
                       name="upiId"
                       value={formData.upiId}
                       onChange={handleInputChange}
                       placeholder="phone@paytm"
-                      className="w-full h-14 bg-slate-50 border-2 border-slate-200 rounded-2xl px-5 text-lg font-semibold focus:border-blue-500 outline-none transition-all placeholder:font-normal"
+                      className="w-full h-14 bg-slate-50 dark:bg-stone-800 border-2 border-slate-200 dark:border-stone-600 dark:text-stone-100 rounded-2xl px-5 text-lg font-semibold focus:border-blue-500 outline-none transition-all placeholder:font-normal"
                     />
                   </div>
 
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Automated Payout Logic</h4>
-                    <p className="text-[11px] text-slate-500 leading-relaxed font-medium">When rain falls above 5mm in your zone, a payout of 60% of daily coverage is triggered automatically to this UPI ID without any manual claims.</p>
+                  <div className="p-4 bg-slate-50 dark:bg-stone-800 rounded-2xl border border-slate-100 dark:border-stone-700">
+                    <h4 className="text-xs font-black text-slate-400 dark:text-stone-500 uppercase tracking-widest mb-2">Automated Payout Logic</h4>
+                    <p className="text-[11px] text-slate-500 dark:text-stone-400 leading-relaxed font-medium">When rain falls above 5mm in your zone, a payout of 60% of daily coverage is triggered automatically to this UPI ID without any manual claims.</p>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="p-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row gap-3">
+          <div className="p-6 bg-slate-50 dark:bg-stone-800 border-t border-slate-200 dark:border-stone-700 flex flex-col sm:flex-row gap-3">
             <button
               type="button"
               onClick={() => step > 1 ? setStep(step - 1) : navigate('/')}
-              className="h-12 px-8 rounded-xl font-bold text-slate-600 hover:bg-white transition-all text-sm cursor-pointer"
+              className="h-12 px-8 rounded-xl font-bold text-slate-600 dark:text-stone-300 hover:bg-white dark:hover:bg-stone-700 transition-all text-sm cursor-pointer"
               disabled={loading}
             >
               {step === 1 ? 'Cancel' : 'Back'}
@@ -395,7 +395,7 @@ const Signup: React.FC = () => {
               type="button"
               onClick={handleNextStep}
               disabled={loading}
-              className="flex-1 h-12 bg-blue-900 text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 hover:shadow-xl transition-all shadow-lg shadow-blue-900/10 active:scale-[0.98] disabled:opacity-70 cursor-pointer"
+              className="flex-1 h-12 bg-blue-900 dark:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 dark:hover:bg-blue-600 hover:shadow-xl transition-all shadow-lg shadow-blue-900/10 active:scale-[0.98] disabled:opacity-70 cursor-pointer"
             >
               {loading ? <Loader2 size={18} className="animate-spin" /> : (
                 <>
@@ -407,7 +407,7 @@ const Signup: React.FC = () => {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+        <p className="mt-8 text-center text-slate-400 dark:text-stone-600 text-[10px] font-bold uppercase tracking-[0.2em]">
           Powered by KavachPay Autonomous Data Protection
         </p>
       </div>

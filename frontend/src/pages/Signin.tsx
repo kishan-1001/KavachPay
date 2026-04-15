@@ -102,47 +102,47 @@ const Signin: React.FC = () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900 font-inter flex items-start sm:items-center justify-center p-4 py-6 sm:py-4">
+    <main className="min-h-screen bg-stone-50 dark:bg-stone-950 text-slate-900 dark:text-stone-100 font-inter flex items-start sm:items-center justify-center p-4 py-6 sm:py-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center justify-center gap-2 text-2xl sm:text-3xl font-black italic tracking-tighter text-blue-900 group">
+          <Link to="/" className="inline-flex items-center justify-center gap-2 text-2xl sm:text-3xl font-black italic tracking-tighter text-blue-900 dark:text-blue-300 group">
             <img src="/KavachPay_logo.png" alt="Logo" className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110" />
             <span>KAVACH<span className="text-blue-600">PAY</span></span>
           </Link>
-          <p className="text-slate-500 mt-2 font-medium">Welcome back to secure protection.</p>
+          <p className="text-slate-500 dark:text-stone-400 mt-2 font-medium">Welcome back to secure protection.</p>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
+        <div className="bg-white dark:bg-stone-900 rounded-3xl border border-slate-200 dark:border-stone-700 shadow-2xl overflow-hidden">
           <div className="p-6 sm:p-8">
             {error && (
-              <div className="mb-6 bg-rose-50 border border-rose-100 text-rose-600 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in">
+              <div className="mb-6 bg-rose-50 dark:bg-rose-950 border border-rose-100 dark:border-rose-800 text-rose-600 dark:text-rose-400 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in">
                 {error}
               </div>
             )}
             {success && (
-              <div className="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-600 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in">
+              <div className="mb-6 bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-2xl text-sm font-medium animate-in fade-in zoom-in">
                 {success}
               </div>
             )}
 
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">{step === 1 ? 'Sign In' : 'Verify Identity'}</h2>
-                <p className="text-sm text-slate-500 mt-1">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-stone-100">{step === 1 ? 'Sign In' : 'Verify Identity'}</h2>
+                <p className="text-sm text-slate-500 dark:text-stone-400 mt-1">
                   {step === 1 ? 'Enter your email to receive a login code.' : `A 6-digit code has been sent to ${email}`}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Email Address</label>
+                  <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={step === 2 && loading}
                     placeholder="name@example.com"
-                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-70"
+                    className="w-full h-12 bg-slate-50 dark:bg-stone-800 border border-slate-200 dark:border-stone-600 dark:text-stone-100 rounded-xl px-4 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-70"
                   />
                   {step === 2 && (
                     <button 
@@ -157,7 +157,7 @@ const Signin: React.FC = () => {
                 {step === 2 && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
                     <div className="flex justify-between items-center">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Enter 6-Digit Code</label>
+                      <label className="text-xs font-bold text-slate-700 dark:text-stone-300 uppercase tracking-wide">Enter 6-Digit Code</label>
                       {countdown > 0 && <span className="text-[10px] font-bold text-rose-500 animate-pulse uppercase tracking-widest">Expires in {countdown}s</span>}
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2">
@@ -169,7 +169,7 @@ const Signin: React.FC = () => {
                           value={digit}
                           onChange={(e) => handleOtpChange(idx, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                          className="h-10 sm:h-12 w-full bg-slate-50 border-2 border-slate-200 rounded-xl text-center text-base sm:text-lg font-bold text-blue-900 focus:border-blue-600 outline-none transition-all cursor-pointer" 
+                          className="h-10 sm:h-12 w-full bg-slate-50 dark:bg-stone-800 border-2 border-slate-200 dark:border-stone-600 rounded-xl text-center text-base sm:text-lg font-bold text-blue-900 dark:text-blue-300 focus:border-blue-600 outline-none transition-all cursor-pointer"
                           maxLength={1} 
                           inputMode="numeric"
                         />
@@ -189,7 +189,7 @@ const Signin: React.FC = () => {
               <button
                 onClick={step === 1 ? handleSendLoginOtp : handleVerifyLogin}
                 disabled={loading}
-                className="w-full h-12 bg-blue-900 text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 transition-all shadow-lg active:scale-[0.98] disabled:opacity-70 cursor-pointer"
+                className="w-full h-12 bg-blue-900 dark:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 dark:hover:bg-blue-600 transition-all shadow-lg active:scale-[0.98] disabled:opacity-70 cursor-pointer"
               >
                 {loading ? <Loader2 size={18} className="animate-spin" /> : (
                   <>
@@ -202,8 +202,8 @@ const Signin: React.FC = () => {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-slate-500 text-sm">
-          Don't have an account? <Link to="/signup" className="text-blue-600 font-bold hover:underline">Create one for free</Link>
+        <p className="mt-8 text-center text-slate-500 dark:text-stone-400 text-sm">
+          Don't have an account? <Link to="/signup" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">Create one for free</Link>
         </p>
       </div>
       <OtpAnimationOverlay isVisible={isVerifyingAnimating} />
