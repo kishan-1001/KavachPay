@@ -1,11 +1,167 @@
 @import "tailwindcss";
 
-html {
-  -webkit-text-size-adjust: 100%;
+/* Make dark: utilities respond to html.dark class, not OS preference */
+@variant dark (&:where(.dark, .dark *));
+
+/* ─── Theme tokens ─────────────────────────────────────────────────────────
+   All pages use these variables. Swapping .dark on <html> flips everything.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-page:        #f8f7f4;   /* stone-50 equivalent */
+  --bg-card:        #ffffff;
+  --bg-card2:       #f5f4f1;   /* stone-100 equivalent */
+  --bg-nav:         rgba(255,255,255,0.85);
+
+  /* Borders */
+  --border:         #e7e5e0;   /* stone-200 */
+  --border-strong:  #d6d3cd;
+
+  /* Text */
+  --text-primary:   #1c1917;   /* stone-900 */
+  --text-secondary: #78716c;   /* stone-500 */
+  --text-muted:     #a8a29e;   /* stone-400 */
+
+  /* Brand */
+  --brand:          #10b981;   /* emerald-500 */
+  --brand-faint:    #ecfdf5;   /* emerald-50 */
+  --brand-text:     #065f46;   /* emerald-800 */
+
+  /* Shadows */
+  --shadow-sm:      0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:      0 4px 12px rgba(0,0,0,0.08);
+
+  /* Status */
+  --status-paid-bg:    #ecfdf5;
+  --status-paid-text:  #065f46;
+  --status-review-bg:  #fffbeb;
+  --status-review-text:#92400e;
+  --status-deny-bg:    #fef2f2;
+  --status-deny-text:  #991b1b;
 }
 
+html.dark {
+  /* Backgrounds — warm charcoal, not pitch black */
+  --bg-page:        #111113;
+  --bg-card:        #1d1d20;
+  --bg-card2:       #26252a;
+  --bg-nav:         rgba(17,17,19,0.92);
+
+  /* Borders */
+  --border:         #44403c;
+  --border-strong:  #57534e;
+
+  /* Text */
+  --text-primary:   #f5f5f4;   /* stone-100 */
+  --text-secondary: #a8a29e;   /* stone-400 */
+  --text-muted:     #78716c;   /* stone-500 */
+
+  /* Brand */
+  --brand:          #34d399;   /* emerald-400 */
+  --brand-faint:    #022c22;
+  --brand-text:     #6ee7b7;   /* emerald-300 */
+
+  /* Shadows */
+  --shadow-sm:      0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md:      0 4px 16px rgba(0,0,0,0.5);
+
+  /* Status */
+  --status-paid-bg:    #022c22;
+  --status-paid-text:  #6ee7b7;
+  --status-review-bg:  #451a03;
+  --status-review-text:#fbbf24;
+  --status-deny-bg:    #4c0519;
+  --status-deny-text:  #fca5a5;
+
+  /* Tailwind CSS v4 Color Variable Overrides */
+  --color-white: var(--bg-card);
+  --color-stone-50: var(--bg-page);
+  --color-stone-100: var(--bg-card2);
+  --color-stone-200: var(--border);
+  --color-slate-50: var(--bg-card2);
+  --color-slate-200: var(--border);
+
+
+  /* Rich Color Backgrounds Map */
+  --color-emerald-50: #022c22;
+  --color-emerald-100: #064e3b;
+  --color-emerald-200: #065f46;
+  --color-emerald-600: #34d399;
+  --color-emerald-700: #34d399;
+
+  --color-blue-50: #1e1b4b;
+  --color-blue-100: #312e81;
+  --color-blue-200: #3730a3;
+  --color-blue-600: #60a5fa;
+  --color-blue-700: #60a5fa;
+  
+  --color-amber-50: #451a03;
+  --color-amber-100: #78350f;
+  --color-amber-200: #92400e;
+  --color-amber-600: #fbbf24;
+  --color-amber-700: #fbbf24;
+
+  --color-rose-50: #4c0519;
+  --color-rose-100: #881337;
+  --color-rose-200: #9f1239;
+  --color-rose-600: #fb7185;
+  --color-rose-700: #fb7185;
+}
+
+/* ─── Dark text overrides (selector-based, safe — doesn't affect bg-* classes) ─ */
+html.dark .text-stone-900,
+html.dark .text-stone-950 { color: #f2f2f4; }
+html.dark .text-stone-800 { color: #e4e4e8; }
+html.dark .text-stone-700 { color: #c4c4cc; }
+html.dark .text-stone-600 { color: #9d9da8; }
+html.dark .text-stone-500 { color: #9d9da8; }
+html.dark .text-stone-400 { color: #6b6b78; }
+html.dark .text-slate-900,
+html.dark .text-slate-800 { color: #f2f2f4; }
+html.dark .text-slate-700 { color: #c4c4cc; }
+html.dark .text-slate-500 { color: #9d9da8; }
+html.dark .text-slate-400 { color: #6b6b78; }
+html.dark .text-blue-900  { color: #93c5fd; }
+html.dark .text-blue-600  { color: #60a5fa; }
+
+/* ─── Apply tokens to raw HTML ──────────────────────────────────────────── */
 body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ─── Utility classes using tokens ─────────────────────────────────────── */
+.kv-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  border-radius: 1.5rem;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.kv-card2 {
+  background: var(--bg-card2);
+  border-radius: 0.75rem;
+  transition: background 0.3s ease;
+}
+
+.kv-text  { color: var(--text-primary); }
+.kv-muted { color: var(--text-secondary); }
+
+/* ─── Scrollbar (dark-aware) ────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--bg-card2); }
+::-webkit-scrollbar-thumb  { background: var(--border-strong); border-radius: 99px; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 #root {
@@ -13,46 +169,49 @@ body {
   overflow-x: clip;
 }
 
-img,
-video,
-svg {
-  max-width: 100%;
-}
+img, video, svg { max-width: 100%; }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
+button, input, select, textarea { font: inherit; }
 
-* {
-  min-width: 0;
-}
+* { min-width: 0; }
 
+/* ─── Animations ────────────────────────────────────────────────────────── */
 @keyframes razorpay-jiggle {
   0%, 100% { transform: translate(0, 0) scale(1); }
-  10% { transform: translate(-2px, -1px) scale(1.02); }
-  20% { transform: translate(2px, 1px) scale(1); }
-  30% { transform: translate(-2px, 2px) scale(0.98); }
-  40% { transform: translate(2px, -2px) scale(1.02); }
-  50% { transform: translate(-1px, 1px) scale(1); }
-  60% { transform: translate(1px, -2px) scale(1.05); }
-  70% { transform: translate(-2px, 1px) scale(1); }
-  80% { transform: translate(2px, 2px) scale(0.98); }
-  90% { transform: translate(-1px, -1px) scale(1.02); }
+  10%  { transform: translate(-2px, -1px) scale(1.02); }
+  20%  { transform: translate(2px, 1px) scale(1); }
+  30%  { transform: translate(-2px, 2px) scale(0.98); }
+  40%  { transform: translate(2px, -2px) scale(1.02); }
+  50%  { transform: translate(-1px, 1px) scale(1); }
+  60%  { transform: translate(1px, -2px) scale(1.05); }
+  70%  { transform: translate(-2px, 1px) scale(1); }
+  80%  { transform: translate(2px, 2px) scale(0.98); }
+  90%  { transform: translate(-1px, -1px) scale(1.02); }
 }
 
-.animate-razorpay-jiggle {
-  animation: razorpay-jiggle 0.15s infinite;
-}
+.animate-razorpay-jiggle { animation: razorpay-jiggle 0.15s infinite; }
 
 @keyframes particle-float {
-  0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0; }
-  20% { opacity: 1; }
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0; }
+  20%  { opacity: 1; }
   100% { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) scale(0) rotate(360deg); opacity: 0; }
 }
 
-.animate-particle {
-  animation: particle-float 2s infinite ease-out;
+.animate-particle { animation: particle-float 2s infinite ease-out; }
+
+/* ─── Removed old hardcoded manual dark-mode utilities overrides ───
+   We are now exclusively relying on Tailwind CSS inline color variable mapping inside `.dark` 
+   so borders, backgrounds, hover states, Opacity (white/80), etc. cascade natively! 
+   ────────────────────────────────────────────────────────────────────── */
+
+/* Input fields */
+html.dark input, html.dark textarea, html.dark select {
+  background-color: var(--bg-card2);
+  border-color: var(--border);
+  color: var(--text-primary);
 }
+html.dark input::placeholder { color: var(--text-muted); }
+
+/* Table rows */
+html.dark tbody tr:hover { background-color: rgba(255,255,255,0.03); }
+html.dark .bg-stone-50\/30 { background-color: rgba(255,255,255,0.02) !important; }

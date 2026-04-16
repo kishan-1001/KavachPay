@@ -226,7 +226,7 @@ import {
   ChevronDown, ChevronUp, ArrowLeft, Wallet
 } from 'lucide-react';
 
-const API = 'http://localhost:5000';
+import API from '../lib/api';
 
 const STATUS_CONFIG: Record<string, { label: string; bgColor: string; textColor: string; borderColor: string; icon: React.ReactNode }> = {
   PAID:     { label: 'Approved',     bgColor: 'bg-emerald-50', textColor: 'text-emerald-700', borderColor: 'border-emerald-200', icon: <CheckCircle2 className="w-4 h-4" /> },

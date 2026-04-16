@@ -5,6 +5,7 @@ import prisma from '../prismaClient.js';
 import { resolveIpContext } from '../services/ipIntel.js';
 import { JWT_SECRET } from '../config.js';
 
+
 const router = express.Router();
 
 router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response) => {
@@ -60,6 +61,24 @@ router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response
       });
     } else {
       // 2. Extend an existing Session and verify chain
+
+      // 🛡️ ANTI-SPAM: Prevent users from refreshing to spam active minutes
+      if (session.endTime) {
+        const secondsSinceLastBeat = (now.getTime() - session.endTime.getTime()) / 1000;
+        if (secondsSinceLastBeat < 45) {
+          // If too soon, just return the existing data without extending the chain
+          res.json({
+            success: true,
+            activeMinutes: session.activeMinutes,
+            status: 'Tracking active Work-Proof ✅',
+            sessionHash: session.sessionHash,
+            ipCity: session.ipCity,
+            ipSource: ipContext.source,
+          });
+          return;
+        }
+      }
+
       const newActiveMinutes = session.activeMinutes + 1;
       const sessionDataString = `${userId}-${newActiveMinutes}-${ipAddress}-${session.startTime.toISOString()}`;
       
@@ -162,4 +181,62 @@ router.get('/activity-stats', authMiddleware, async (req: AuthRequest, res: Resp
   }
 });
 
+router.get('/history', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const JWT_SECRET = process.env.JWT_SECRET || 'kavach_pay_secret_zero_trust_2026';
+
+    const sessions = await prisma.workSession.findMany({
+      where: { userId },
+      orderBy: { startTime: 'desc' },
+      take: 15,
+      include: {
+        heartbeats: { orderBy: { timestamp: 'asc' } },
+      },
+    });
+
+    const result = sessions.map((session) => {
+      const hbs = session.heartbeats;
+
+      // Re-verify chain: mirrors exactly what the heartbeat route writes.
+      // Beat 1: HMAC(userId-1-ip-startTime, '')
+      // Beat N: HMAC(userId-N-ip-startTime, previousHash)
+      let chainValid = true;
+      let runningHash = '';
+      for (let i = 0; i < hbs.length; i++) {
+        const dataStr = `${userId}-${i + 1}-${hbs[i].ipAddress}-${session.startTime.toISOString()}`;
+        const expected = crypto
+          .createHmac('sha256', JWT_SECRET)   // ← same secret as heartbeat route
+          .update(dataStr + runningHash)
+          .digest('hex');
+        if (expected !== hbs[i].hash) { chainValid = false; break; }
+        runningHash = expected;
+      }
+
+      const durationMins = session.endTime
+        ? Math.round((session.endTime.getTime() - session.startTime.getTime()) / 60000)
+        : session.activeMinutes;
+
+      return {
+        id: session.id,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        activeMinutes: session.activeMinutes,
+        durationMins,
+        heartbeatCount: hbs.length,
+        ipCity: session.ipCity,
+        ipAddress: session.ipAddress,
+        isChainValid: chainValid,
+        platformActiveFlag: session.platformActiveFlag,
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('Session history error:', error);
+    res.status(500).json({ error: 'Failed to fetch session history.' });
+  }
+});
+
 export default router;
+

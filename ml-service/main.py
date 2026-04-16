@@ -10,7 +10,7 @@ import uvicorn
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
-from model_hub import model_hub
+from model_hub import get_model_hub
 from scoring import aggregate_four_pillars
 
 app = FastAPI(title="KavachPay ML Service", version="2.0.0")
@@ -110,7 +110,7 @@ def pillar1_behavioral_auth(payload: Pillar1Request) -> Dict[str, Any]:
     # Use login hour from first timestamp so the model can check peak-hour alignment
     login_hour = timestamps[0].hour if timestamps else 12
 
-    anomaly_score, is_anomaly = model_hub.predict_fraud_anomaly(avg_gap, jitter_ms, len(timestamps), login_hour)
+    anomaly_score, is_anomaly = get_model_hub().predict_fraud_anomaly(avg_gap, jitter_ms, len(timestamps), login_hour)
     score = max(0.0, min(1.0, 1 - anomaly_score))
 
     return {
@@ -229,7 +229,7 @@ def pillar2_environmental_consensus(
     news_count = int((news or {}).get("count") or 0)
     aqi_val = float((aqi or {}).get("aqi") or 0)
 
-    model_score = model_hub.predict_environment_risk(precipitation, temp, news_count, aqi_val)
+    model_score = get_model_hub().predict_environment_risk(precipitation, temp, news_count, aqi_val)
 
     evidence: List[str] = []
     if weather:
@@ -282,7 +282,7 @@ def pillar3_session_authenticity(payload: Pillar3Request) -> Dict[str, Any]:
     else:
         login_hour = payload.sessionStartTime.hour
 
-    score = model_hub.predict_work_proof(
+    score = get_model_hub().predict_work_proof(
         active_minutes=len(ordered),
         recency_mins=recency_mins,
         ip_match=ip_match,
@@ -353,7 +353,7 @@ def pillar4_ring_detect(payload: Pillar4Request) -> Dict[str, Any]:
         for i in range(len(claims))
     ]
 
-    ring_risk = model_hub.predict_ring_probability(
+    ring_risk = get_model_hub().predict_ring_probability(
         ip_subnet_diversity=ip_subnet_diversity,
         timestamp_entropy=timestamp_entropy,
         workproof_variance=workproof_variance,
