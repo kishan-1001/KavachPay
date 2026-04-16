@@ -61,6 +61,24 @@ router.post('/heartbeat', authMiddleware, async (req: AuthRequest, res: Response
       });
     } else {
       // 2. Extend an existing Session and verify chain
+
+      // 🛡️ ANTI-SPAM: Prevent users from refreshing to spam active minutes
+      if (session.endTime) {
+        const secondsSinceLastBeat = (now.getTime() - session.endTime.getTime()) / 1000;
+        if (secondsSinceLastBeat < 45) {
+          // If too soon, just return the existing data without extending the chain
+          res.json({
+            success: true,
+            activeMinutes: session.activeMinutes,
+            status: 'Tracking active Work-Proof ✅',
+            sessionHash: session.sessionHash,
+            ipCity: session.ipCity,
+            ipSource: ipContext.source,
+          });
+          return;
+        }
+      }
+
       const newActiveMinutes = session.activeMinutes + 1;
       const sessionDataString = `${userId}-${newActiveMinutes}-${ipAddress}-${session.startTime.toISOString()}`;
       
