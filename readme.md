@@ -2,6 +2,8 @@
 
 ## 🚀 [**🔴 PLAY LIVE DEMO NOW**](https://kavachpay-seven.vercel.app/)
 
+### 📺 [**Pitch Video**](https://youtu.be/VjTpNMCR1nA) | 🎥 [**Demo Video**](https://youtu.be/vvW7pTM19fY)
+
 > *"Don't trust location. Trust behavior. Trust work. Trust truth."*
 
 
