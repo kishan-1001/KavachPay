@@ -17,6 +17,7 @@ from __future__ import annotations
 import logging
 import math
 import os
+import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -267,18 +268,59 @@ class ModelHub:
             GradientBoostingRegressor,
             IsolationForest,
         )
+        from sklearn.exceptions import InconsistentVersionWarning
+
+        self._InconsistentVersionWarning = InconsistentVersionWarning
 
         MODELS_DIR.mkdir(parents=True, exist_ok=True)
         self._ensure_models()
 
-        self.risk_model:       GradientBoostingRegressor  = joblib.load(RISK_MODEL_PATH)
-        self.work_proof_model: GradientBoostingClassifier = joblib.load(WORK_PROOF_MODEL_PATH)
-        self.fraud_model:      IsolationForest             = joblib.load(FRAUD_MODEL_PATH)
+        self.risk_model: GradientBoostingRegressor = self._load_or_retrain(
+            RISK_MODEL_PATH,
+            self._train_risk_model,
+            "Pillar 2 risk",
+        )
+        self.work_proof_model: GradientBoostingClassifier = self._load_or_retrain(
+            WORK_PROOF_MODEL_PATH,
+            self._train_work_proof_model,
+            "Pillar 3 work-proof",
+        )
+        self.fraud_model: IsolationForest = self._load_or_retrain(
+            FRAUD_MODEL_PATH,
+            self._train_fraud_model,
+            "Pillar 1 fraud",
+        )
 
         # Load GNN (optional — graceful fallback to heuristics if torch unavailable)
         self._gnn = None
         self._torch = None
         self._load_gnn()
+
+    def _load_or_retrain(self, model_path: Path, train_fn, label: str):
+        def _load_once():
+            with warnings.catch_warnings(record=True) as captured:
+                warnings.simplefilter("always", self._InconsistentVersionWarning)
+                loaded = joblib.load(model_path)
+
+            mismatch = any(
+                issubclass(w.category, self._InconsistentVersionWarning) for w in captured
+            )
+            return loaded, mismatch
+
+        try:
+            model, has_version_mismatch = _load_once()
+        except Exception as exc:
+            logger.warning("%s model load failed at %s (%s). Retraining.", label, model_path, exc)
+            train_fn()
+            model, _ = _load_once()
+            return model
+
+        if has_version_mismatch:
+            logger.warning("%s model version mismatch at %s. Retraining with current sklearn.", label, model_path)
+            train_fn()
+            model, _ = _load_once()
+
+        return model
 
     # ── Model existence checks ──────────────────────────────────────────────
 
@@ -292,14 +334,13 @@ class ModelHub:
         if not WORK_PROOF_MODEL_PATH.exists():
             logger.info("Training Pillar 3 work-proof model…")
             self._train_work_proof_model()
+        # Avoid expensive Pillar 4 training in the request path.
+        # If artifacts are missing, inference will gracefully use heuristic fallback.
         if not RING_GNN_PATH.exists() or not RING_META_PATH.exists():
-            logger.info("Training Pillar 4 GNN fraud ring detector…")
-            FraudRingGNN, torch = _build_gnn_model()
-            if FraudRingGNN is not None:
-                _train_ring_gnn(FraudRingGNN, torch)
-            else:
-                logger.warning("PyTorch not available — training fallback ring model.")
-                self._train_ring_model_fallback()
+            logger.warning(
+                "Pillar 4 model artifacts missing (ring_gnn.pt/meta). "
+                "Using heuristic fallback until artifacts are prepared."
+            )
 
     # ── Pillar 2 — GradientBoostingRegressor on REAL weather ───────────────
 

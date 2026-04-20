@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "KavachPay",
+    "slug": "kavachpay",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0E1A"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kavachpay.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "KavachPay needs your location to detect nearby disruptions and verify your work session.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "KavachPay uses background location to verify your active delivery session."
+      }
+    },
+    "android": {
+      "package": "com.kavachpay.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0E1A"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ],
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "kavachpay",
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "KavachPay uses your location to verify your work session and detect disruptions nearby."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

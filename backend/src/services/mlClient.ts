@@ -58,6 +58,20 @@ function getMlBaseUrl() {
   return (process.env.ML_SERVICE_URL || '').replace(/\/$/, '');
 }
 
+function getMlTimeoutMs(path: string): number {
+  const configured = Number(process.env.ML_SERVICE_TIMEOUT_MS || '');
+  if (Number.isFinite(configured) && configured > 0) {
+    return configured;
+  }
+
+  // Pillar 2 may call multiple external APIs and can legitimately take longer.
+  if (path === '/api/pillar2/environmental-consensus') {
+    return 25000;
+  }
+
+  return 12000;
+}
+
 async function postMl<TResponse>(path: string, body: unknown, headers?: Record<string, string>): Promise<TResponse | null> {
   const baseUrl = getMlBaseUrl();
   if (!baseUrl) {
@@ -66,7 +80,7 @@ async function postMl<TResponse>(path: string, body: unknown, headers?: Record<s
 
   try {
     const response = await axios.post<TResponse>(`${baseUrl}${path}`, body, {
-      timeout: 8000,
+      timeout: getMlTimeoutMs(path),
       headers,
     });
     return response.data;

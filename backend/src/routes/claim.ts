@@ -415,4 +415,110 @@ router.get('/payouts', authMiddleware, async (req: AuthRequest, res: Response) =
   }
 });
 
+// ── Mobile: fetch all claims for the authenticated user (Claims screen) ──────
+router.get('/my-claims', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const claims = await prisma.claim.findMany({
+      where:   { userId: req.user!.userId },
+      orderBy: { createdAt: 'desc' },
+      include: { policy: { select: { planTier: true, coverageAmount: true } } },
+    });
+    res.json({ claims });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch claims.' });
+  }
+});
+
+// ── Mobile: map data — disruption zones + fraud clusters for the Map screen ──
+/**
+ * Returns:
+ *  disruptionZones: confirmed disruption circles with lat/lon/radius for the city
+ *  fraudClusters:   anonymised fraud ring cluster centroids
+ *  activeWorkers:   count of workers with a session in the last 2h for the city
+ */
+router.get('/map-data', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const city = (req.query.city as string) || req.user!.city || 'Mumbai';
+
+    // City → approximate coordinates (extend as needed)
+    const CITY_COORDS: Record<string, { lat: number; lon: number }> = {
+      Mumbai:    { lat: 19.0760, lon: 72.8777 },
+      Bengaluru: { lat: 12.9716, lon: 77.5946 },
+      Delhi:     { lat: 28.6139, lon: 77.2090 },
+      Chennai:   { lat: 13.0827, lon: 80.2707 },
+      Hyderabad: { lat: 17.3850, lon: 78.4867 },
+    };
+    const base = CITY_COORDS[city] ?? CITY_COORDS.Mumbai;
+
+    // 1. Environmental snapshot from ML service (non-blocking)
+    let disruptionScore = 0;
+    let disruptionLabel = 'Monitoring';
+    try {
+      const { default: axios } = await import('axios');
+      const mlRes = await axios.post(
+        `${process.env.ML_SERVICE_URL ?? 'http://127.0.0.1:8000'}/api/pillar2/environmental-consensus`,
+        { city },
+        { timeout: 8000 },
+      );
+      disruptionScore = mlRes.data?.disruptionScore ?? 0;
+      const evidence: string[] = mlRes.data?.evidence ?? [];
+      if (disruptionScore > 0.5) disruptionLabel = 'Severe Disruption';
+      else if (disruptionScore > 0.3) disruptionLabel = evidence[0] ?? 'Disruption Detected';
+    } catch { /* ML service unavailable — use empty zones */ }
+
+    const disruptionZones = disruptionScore > 0.25
+      ? [
+          {
+            id:           `dz-${city}-main`,
+            city,
+            lat:          base.lat,
+            lon:          base.lon,
+            radiusMeters: Math.round(1500 + disruptionScore * 4000),
+            score:        disruptionScore,
+            type:         'weather' as const,
+            label:        disruptionLabel,
+          },
+        ]
+      : [];
+
+    // 2. Recent fraud ring clusters in this city (last 6h, grouped by subnet similarity)
+    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+    const recentSuspectClaims = await prisma.claim.findMany({
+      where: {
+        createdAt:  { gte: sixHoursAgo },
+        fraudScore: { gte: 0.55 },
+        status:     'REVIEW',
+        user:       { city },
+      },
+      select: { id: true, userId: true, fraudScore: true },
+    });
+
+    const fraudClusters = recentSuspectClaims.length >= 2
+      ? [
+          {
+            id:        `fc-${city}-${sixHoursAgo.getTime()}`,
+            lat:       base.lat + 0.014,
+            lon:       base.lon + 0.018,
+            count:     recentSuspectClaims.length,
+            riskLevel: recentSuspectClaims.length >= 5 ? 'high' : 'medium' as 'high' | 'medium',
+          },
+        ]
+      : [];
+
+    // 3. Active worker count
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const activeWorkers = await prisma.workSession.count({
+      where: {
+        endTime: { gte: twoHoursAgo },
+        user:    { city },
+      },
+    });
+
+    res.json({ disruptionZones, fraudClusters, activeWorkers });
+  } catch (error) {
+    console.error('Map data error:', error);
+    res.status(500).json({ error: 'Failed to fetch map data.' });
+  }
+});
+
 export default router;

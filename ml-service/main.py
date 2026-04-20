@@ -16,6 +16,12 @@ from scoring import aggregate_four_pillars
 app = FastAPI(title="KavachPay ML Service", version="2.0.0")
 
 
+@app.on_event("startup")
+def warm_model_hub() -> None:
+    # Preload models during startup to avoid first-request latency spikes.
+    get_model_hub()
+
+
 def _mean(values: List[float]) -> float:
     return sum(values) / len(values) if values else 0.0
 
