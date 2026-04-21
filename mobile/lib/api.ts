@@ -1,9 +1,23 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
-// Change this to your machine's local IP when testing on a physical device
-// e.g., '192.168.1.X:5000' — localhost won't work on Android emulators
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:5000';
+// ─── Backend URL Configuration ────────────────────────────────────────────────
+//
+//  Priority:
+//   1. EXPO_PUBLIC_API_URL env var  → set in .env.local for production/staging
+//   2. Android emulator             → 10.0.2.2 maps to host machine's localhost
+//   3. Physical device / iOS sim    → set your machine's LAN IP here
+//
+//  Your machine's LAN IP (WiFi): 10.65.5.128
+//  Backend port: 5000
+//
+const PHYSICAL_DEVICE_URL = 'http://10.65.5.128:5000'; // change if IP changes
+const EMULATOR_URL        = 'http://10.0.2.2:5000';    // Android emulator only
+
+const BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ??
+  (Platform.OS === 'android' ? EMULATOR_URL : PHYSICAL_DEVICE_URL);
 
 export const api = axios.create({
   baseURL: BASE_URL,

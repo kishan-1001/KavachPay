@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ActivityIndicator,
-  Animated, ScrollView, Alert,
+  Animated, ScrollView, Alert, Image
 } from 'react-native';
+import { ShieldCheck, ArrowRight } from 'lucide-react-native';
 import { useAuth } from '../../lib/AuthContext';
 import api from '../../lib/api';
 import { colors, spacing, radius, fontSize } from '../../lib/theme';
@@ -16,7 +17,17 @@ export default function AuthScreen() {
   const [email,       setEmail]       = useState('');
   const [otp,         setOtp]         = useState('');
   const [loading,     setLoading]     = useState(false);
+  const [countdown,   setCountdown]   = useState(0);
+
   const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    if (countdown > 0) {
+      timer = setInterval(() => setCountdown((c) => c - 1), 1000);
+    }
+    return () => { if (timer) clearInterval(timer); };
+  }, [countdown]);
 
   const shake = () => {
     Animated.sequence([
@@ -28,11 +39,12 @@ export default function AuthScreen() {
   };
 
   const handleSendOtp = async () => {
-    if (!email.trim()) { shake(); return; }
+    if (!email.trim() || !email.includes('@')) { shake(); return; }
     setLoading(true);
     try {
-      await api.post('/api/auth/send-otp', { email: email.trim().toLowerCase() });
+      await api.post('/api/auth/login-send-otp', { email: email.trim().toLowerCase() });
       setStep('otp');
+      setCountdown(60);
     } catch (e: any) {
       shake();
       Alert.alert('Error', e?.response?.data?.error ?? 'Could not send OTP. Check the email.');
@@ -61,79 +73,77 @@ export default function AuthScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {/* Logo / Brand */}
+        {/* Brand */}
         <View style={styles.brand}>
-          <Text style={styles.logo}>🛡</Text>
-          <Text style={styles.brandName}>KavachPay</Text>
-          <Text style={styles.tagline}>Zero-Trust Insurance for Gig Workers</Text>
+          <Text style={styles.brandTitle}>
+            KAVACH<Text style={{ color: colors.primary }}>PAY</Text>
+          </Text>
+          <Text style={styles.tagline}>Welcome back to secure protection.</Text>
         </View>
 
         {/* Card */}
         <Animated.View style={[styles.card, { transform: [{ translateX: shakeAnim }] }]}>
           <Text style={styles.cardTitle}>
-            {step === 'email' ? 'Sign In' : 'Enter OTP'}
+            {step === 'email' ? 'Sign In' : 'Verify Identity'}
           </Text>
           <Text style={styles.cardSub}>
             {step === 'email'
-              ? 'Enter your registered email to receive a one-time code.'
-              : `We sent a 6-digit code to ${email}`
+              ? 'Enter your email to receive a login code.'
+              : `A 6-digit code has been sent to ${email}`
             }
           </Text>
 
           {step === 'email' ? (
-            <>
-              <View style={styles.inputWrap}>
-                <Text style={styles.inputLabel}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="arjun@zomato.com"
-                  placeholderTextColor={colors.textMuted}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  onSubmitEditing={handleSendOtp}
-                />
-              </View>
-              <TouchableOpacity style={styles.btn} onPress={handleSendOtp} disabled={loading}>
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Send OTP →</Text>}
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <View style={styles.inputWrap}>
-                <Text style={styles.inputLabel}>6-Digit Code</Text>
-                <TextInput
-                  style={[styles.input, styles.inputOtp]}
-                  placeholder="888888"
-                  placeholderTextColor={colors.textMuted}
-                  value={otp}
-                  onChangeText={setOtp}
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  onSubmitEditing={handleVerifyOtp}
-                  autoFocus
-                />
-              </View>
-              <TouchableOpacity style={styles.btn} onPress={handleVerifyOtp} disabled={loading}>
-                {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Verify & Sign In</Text>}
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.back} onPress={() => { setStep('email'); setOtp(''); }}>
-                <Text style={styles.backText}>← Change email</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </Animated.View>
-
-        {/* How ML works blurb */}
-        <View style={styles.infoRow}>
-          {['🤖 Bot Check', '⛈ Real Weather', '🔐 Work Proof', '🕸 Ring Detect'].map((item) => (
-            <View key={item} style={styles.infoChip}>
-              <Text style={styles.infoChipText}>{item}</Text>
+            <View style={styles.inputWrap}>
+              <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="name@example.com"
+                placeholderTextColor={colors.textMuted}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                onSubmitEditing={handleSendOtp}
+              />
             </View>
-          ))}
-        </View>
+          ) : (
+            <View style={styles.inputWrap}>
+              <View style={styles.otpHeaderRow}>
+                <Text style={styles.inputLabel}>ENTER 6-DIGIT CODE</Text>
+                {countdown > 0 && <Text style={styles.countdownText}>EXPIRES IN {countdown}S</Text>}
+              </View>
+              <TextInput
+                style={[styles.input, styles.inputOtp]}
+                placeholder="••••••"
+                placeholderTextColor={colors.textMuted}
+                value={otp}
+                onChangeText={setOtp}
+                keyboardType="number-pad"
+                maxLength={6}
+                onSubmitEditing={handleVerifyOtp}
+                autoFocus
+              />
+              <TouchableOpacity style={styles.back} onPress={() => { setStep('email'); setOtp(''); }}>
+                <Text style={styles.backText}>Change email</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[styles.btn, loading && styles.btnDisabled]}
+            onPress={step === 'email' ? handleSendOtp : handleVerifyOtp}
+            disabled={loading}
+          >
+            {loading ? <ActivityIndicator color="#fff" /> : (
+              <View style={styles.btnContent}>
+                <Text style={styles.btnText}>{step === 'email' ? 'Get Login Code' : 'Secure Login'}</Text>
+                {step === 'email' ? <ArrowRight color="#fff" size={18} /> : <ShieldCheck color="#fff" size={18} />}
+              </View>
+            )}
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -143,26 +153,27 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   content:   { flexGrow: 1, justifyContent: 'center', padding: spacing.lg },
 
-  brand:     { alignItems: 'center', marginBottom: spacing.xl },
-  logo:      { fontSize: 52, marginBottom: spacing.sm },
-  brandName: { fontSize: 30, fontWeight: '900', color: colors.textPrimary, letterSpacing: -0.5 },
-  tagline:   { fontSize: fontSize.md, color: colors.textSecondary, marginTop: spacing.xs },
+  brand:      { alignItems: 'center', marginBottom: spacing.xl },
+  brandTitle: { fontSize: 32, fontWeight: '900', fontStyle: 'italic', letterSpacing: -1, color: '#1e3a8a' }, // Tailwind blue-900
+  tagline:    { fontSize: fontSize.sm, color: colors.textMuted, fontWeight: '500', marginTop: 4 },
 
-  card:      { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, marginBottom: spacing.lg },
-  cardTitle: { fontSize: fontSize.xxl, fontWeight: '800', color: colors.textPrimary, marginBottom: spacing.xs },
-  cardSub:   { fontSize: fontSize.md, color: colors.textSecondary, marginBottom: spacing.lg, lineHeight: 22 },
+  card:       { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 24, elevation: 5 },
+  cardTitle:  { fontSize: fontSize.xl, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+  cardSub:    { fontSize: fontSize.sm, color: colors.textMuted, marginBottom: spacing.lg },
 
-  inputWrap: { marginBottom: spacing.md },
-  inputLabel:{ fontSize: fontSize.sm, fontWeight: '700', color: colors.textSecondary, marginBottom: spacing.xs },
-  input:     { backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 14, fontSize: fontSize.md, color: colors.textPrimary },
-  inputOtp:  { fontSize: 24, fontWeight: '700', letterSpacing: 12, textAlign: 'center' },
+  inputWrap:  { marginBottom: spacing.lg },
+  inputLabel: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, marginBottom: 8, letterSpacing: 0.5 },
+  input:      { backgroundColor: colors.bg, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 16, paddingVertical: 14, fontSize: fontSize.md, color: colors.textPrimary },
+  
+  otpHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  countdownText:{ fontSize: 10, fontWeight: '700', color: colors.danger, letterSpacing: 0.5 },
+  inputOtp:     { fontSize: 28, fontWeight: '700', letterSpacing: 12, textAlign: 'center' },
 
-  btn:       { backgroundColor: colors.primary, paddingVertical: 15, borderRadius: radius.md, alignItems: 'center', shadowColor: colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 },
-  btnText:   { fontSize: fontSize.lg, fontWeight: '700', color: '#fff' },
-  back:      { alignItems: 'center', marginTop: spacing.md },
-  backText:  { fontSize: fontSize.md, color: colors.textSecondary },
-
-  infoRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'center' },
-  infoChip:  { backgroundColor: colors.surfaceAlt, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.full, borderWidth: 1, borderColor: colors.border },
-  infoChipText: { fontSize: fontSize.xs, color: colors.textMuted, fontWeight: '600' },
+  btn:          { backgroundColor: '#1e3a8a', paddingVertical: 16, borderRadius: radius.md, alignItems: 'center' },
+  btnDisabled:  { opacity: 0.7 },
+  btnContent:   { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  btnText:      { fontSize: fontSize.md, fontWeight: '700', color: '#fff' },
+  
+  back:         { alignItems: 'center', marginTop: spacing.md },
+  backText:     { fontSize: 11, fontWeight: '700', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 },
 });
