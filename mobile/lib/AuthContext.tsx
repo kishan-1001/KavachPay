@@ -30,18 +30,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Restore session on mount
   useEffect(() => {
     (async () => {
-      const stored = await getToken();
-      if (stored) {
-        setToken(stored);
-        try {
-          const res = await api.get('/api/user/profile');
-          setUser(res.data);
-        } catch {
-          await clearToken();
-          setToken(null);
+      try {
+        const stored = await getToken();
+        if (stored) {
+          setToken(stored);
+          try {
+            // Pass token directly — interceptor may not read SecureStore in time
+            const res = await api.get('/api/user/profile', {
+              headers: { Authorization: `Bearer ${stored}` },
+              timeout: 5000, // Don't block app startup for more than 5s
+            });
+            setUser(res.data);
+          } catch {
+            await clearToken();
+            setToken(null);
+          }
         }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, []);
 

@@ -10,7 +10,7 @@ import API_BASE_URL from '../lib/api';
 import { useTheme } from '../lib/ThemeContext';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
-type TabId = 'overview' | 'sessions' | 'claims';
+type TabId = 'overview' | 'sessions' | 'claims' | 'map';
 
 interface SessionRecord {
   id: string;
@@ -374,6 +374,7 @@ const Dashboard: React.FC = () => {
             { id: 'overview', label: 'Overview', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
             { id: 'sessions', label: 'Sessions', icon: <History className="w-3.5 h-3.5" /> },
             { id: 'claims',   label: 'Claims',   icon: <TrendingUp className="w-3.5 h-3.5" /> },
+            { id: 'map',      label: 'Live Map', icon: <MapPin className="w-3.5 h-3.5" /> },
           ] as Array<{ id: TabId; label: string; icon: React.ReactNode }>).map(tab => (
             <button
               key={tab.id}
@@ -753,6 +754,90 @@ const Dashboard: React.FC = () => {
               <Cloud className="w-5 h-5" />
               Simulate Disruption
             </button>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════ */}
+        {/* ── MAP TAB ──────────────────────────────────────────────── */}
+        {/* ════════════════════════════════════════════════════════════ */}
+        {activeTab === 'map' && (
+          <div>
+            <div className="flex items-start justify-between mb-4 gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-stone-900">Live Disruption Map</h2>
+                <p className="text-sm text-stone-500 mt-0.5">
+                  Real-time zones and fraud clusters near <strong>{profile?.city || 'your city'}</strong>
+                </p>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-stone-500 flex-shrink-0 pt-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-full bg-rose-400" />Disruption Zone
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block w-3 h-3 rounded-full bg-amber-400" />Fraud Cluster
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden" style={{ height: 520 }}>
+              <iframe
+                key={activeTab}
+                title="kavachpay-disruption-map"
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                srcDoc={`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+  <style>
+    html,body,#map{height:100%;margin:0;padding:0;font-family:-apple-system,sans-serif;}
+    .lp h3{font-size:14px;font-weight:700;margin:0 0 4px;color:#1c1917;}
+    .lp p{font-size:12px;margin:2px 0;color:#78716c;}
+    .lp .red{color:#e11d48;font-weight:700;}
+    .lp .amb{color:#d97706;font-weight:700;}
+  </style>
+</head>
+<body><div id="map"></div>
+<script>
+  var map=L.map('map',{zoomControl:true,attributionControl:false}).setView([19.076,72.877],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
+
+  var TOKEN='${localStorage.getItem('kavachpay_token')||''}';
+  var CITY='${profile?.city||'Mumbai'}';
+  var API='${API_BASE_URL}';
+
+  fetch(API+'/api/claim/map-data?city='+encodeURIComponent(CITY),{headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(function(r){return r.ok?r.json():Promise.reject('API error');})
+    .then(function(data){
+      (data.disruptionZones||[]).forEach(function(z){
+        L.circle([z.lat,z.lon],{radius:z.radiusMeters,color:'#e11d48',fillColor:'#e11d48',fillOpacity:.12,weight:2})
+         .addTo(map).bindPopup('<div class="lp"><h3>'+z.label+'</h3><p>Score: <span class="red">'+Math.round(z.score*100)+'%</span></p><p>Type: '+z.type+'</p><p>Radius: '+(z.radiusMeters/1000).toFixed(1)+' km</p></div>');
+        L.marker([z.lat,z.lon],{icon:L.divIcon({html:'<div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;color:#e11d48;white-space:nowrap;">'+z.label+'</div>',iconAnchor:[0,0],className:''})}).addTo(map);
+      });
+      (data.fraudClusters||[]).forEach(function(c){
+        var col=c.riskLevel==='high'?'#e11d48':'#d97706';
+        L.circleMarker([c.lat,c.lon],{radius:14+c.count,color:col,fillColor:col,fillOpacity:.75,weight:2})
+         .addTo(map).bindPopup('<div class="lp"><h3>Fraud Ring Cluster</h3><p><b>'+c.count+'</b> suspicious claims</p><p>Risk: <span class="'+(c.riskLevel==='high'?'red':'amb')+'">'+c.riskLevel.toUpperCase()+'</span></p></div>');
+      });
+      if(data.activeWorkers){
+        var info=L.control({position:'topright'});
+        info.onAdd=function(){var d=L.DomUtil.create('div');d.style.cssText='background:#fff;border:1px solid #e7e5e4;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;color:#44403c;box-shadow:0 2px 8px rgba(0,0,0,.07);';d.innerHTML='● '+data.activeWorkers+' Active Workers';return d;};
+        info.addTo(map);
+      }
+      if((data.disruptionZones||[]).length>0)map.setView([data.disruptionZones[0].lat,data.disruptionZones[0].lon],12);
+    })
+    .catch(function(){
+      L.circle([19.076,72.877],{radius:3000,color:'#e11d48',fillColor:'#e11d48',fillOpacity:.12,weight:2}).addTo(map)
+       .bindPopup('<div class="lp"><h3>Demo Zone (API unavailable)</h3><p>Start the backend to see real data</p></div>');
+    });
+<\/script>
+</body></html>`}
+              />
+            </div>
+            <p className="text-xs text-stone-400 mt-3 text-center">
+              Map refreshes on tab open · Disruption zones sourced from Pillar 2 environmental consensus model
+            </p>
           </div>
         )}
       </div>

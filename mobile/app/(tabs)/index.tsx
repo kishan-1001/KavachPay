@@ -8,7 +8,7 @@ import * as Location from 'expo-location';
 import { useQuery } from '@tanstack/react-query';
 import {
   ShieldAlert, CloudLightning, ShieldCheck, Clock,
-  MapPin, Zap, AlertTriangle, CheckCircle2,
+  MapPin, Zap, AlertTriangle, CheckCircle2, LogOut,
 } from 'lucide-react-native';
 import { colors, spacing, radius, fontSize } from '../../lib/theme';
 import { useAuth } from '../../lib/AuthContext';
@@ -76,7 +76,7 @@ function ScorePill({ label, score, good }: { label: string; score: number; good:
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 export default function MapScreen() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const mapRef   = useRef<MapView>(null);
 
   const [location,        setLocation]        = useState<Location.LocationObject | null>(null);
@@ -266,13 +266,18 @@ export default function MapScreen() {
       </MapView>
 
       {/* ── HUD overlay ─────────────────────────────────── */}
-      <View style={styles.hud} pointerEvents="none">
+      <View style={styles.hud} pointerEvents="box-none">
         <View style={styles.hudTop}>
           <View style={styles.hudPill}>
             <View style={[styles.dot, { backgroundColor: colors.success }]} />
             <Text style={styles.hudText}>{mapData?.activeWorkers ?? '—'} Active Workers</Text>
           </View>
-          {mapLoading && <ActivityIndicator size="small" color={colors.primary} />}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            {mapLoading && <ActivityIndicator size="small" color={colors.primary} />}
+            <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+              <LogOut size={18} color={colors.danger} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {insideZone && (
@@ -446,6 +451,7 @@ const styles = StyleSheet.create({
   hudPill:    { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface + 'F0', paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.full, borderWidth: 1, borderColor: colors.border, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 3 },
   dot:        { width: 7, height: 7, borderRadius: 4, marginRight: 6 },
   hudText:    { fontSize: fontSize.sm, color: colors.textSecondary, fontWeight: '600' },
+  logoutBtn:  { backgroundColor: colors.surface + 'F0', padding: 8, borderRadius: 20, borderWidth: 1, borderColor: colors.danger + '44', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 3 },
   alertBanner:{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.dangerBg, borderWidth: 1, borderColor: colors.danger + '55', borderRadius: radius.md, padding: spacing.sm, marginTop: spacing.sm, gap: spacing.sm },
   alertTitle: { fontSize: fontSize.md, fontWeight: '700', color: colors.danger },
   alertSub:   { fontSize: fontSize.sm, color: colors.textSecondary },
