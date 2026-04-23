@@ -4,13 +4,16 @@ import {
   ShieldAlert, X, User, Phone, MapPin, Bike, Briefcase, Wallet, LogOut,
   ShieldCheck, TrendingUp, Activity, Cloud, Zap, ChevronRight, Clock,
   Bell, History, CheckCircle2, AlertCircle, Timer, Cpu, Link2, WifiOff,
-  Moon, Sun,
+  Sun, Moon, ChevronUp, ChevronDown, List, Radar, CloudLightning
 } from 'lucide-react';
+import { MapContainer, TileLayer, Circle, CircleMarker, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import API_BASE_URL from '../lib/api';
 import { useTheme } from '../lib/ThemeContext';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
-type TabId = 'overview' | 'sessions' | 'claims' | 'map';
+type TabId = 'overview' | 'sessions' | 'claims';
 
 interface SessionRecord {
   id: string;
@@ -47,7 +50,7 @@ function CoverageBar({ used, total }: { used: number; total: number }) {
   const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
   return (
     <div className="mt-3">
-      <div className="flex justify-between text-xs text-stone-400 mb-1.5">
+      <div className="flex justify-between text-xs text-stone-500 mb-1.5 font-medium">
         <span>₹{used.toLocaleString()} used</span>
         <span>₹{total.toLocaleString()} total</span>
       </div>
@@ -62,7 +65,48 @@ function CoverageBar({ used, total }: { used: number; total: number }) {
   );
 }
 
+/* ─── Map Helpers ─────────────────────────────────────────────────────────── */
+const createLabelIcon = (label: string) => L.divIcon({
+  html: `<div style="background:rgba(255,255,255,0.9);backdrop-filter:blur(4px);border:1.5px solid #fca5a5;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;color:#e11d48;white-space:nowrap;display:inline-block;transform:translate(-50%,-100%);margin-top:-5px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">${label}</div>`,
+  iconAnchor: [0, 0],
+  className: ''
+});
+
 /* ─── Component ───────────────────────────────────────────────────────────── */
+const MapUpdater = ({ center }: { center: any }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center, map]);
+  return null;
+};
+
+const MapRecenter = ({ center, isPanelOpen, onRefreshLocation }: { center: any, isPanelOpen: boolean, onRefreshLocation?: () => void }) => {
+  const map = useMap();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  return (
+    <div className={`absolute right-4 md:right-8 z-[400] transition-all duration-500 pointer-events-auto ${isPanelOpen ? 'bottom-[78vh] md:bottom-8' : 'bottom-[14vh] md:bottom-8'}`}>
+      <button
+        onClick={(e) => { 
+          e.preventDefault(); 
+          e.stopPropagation(); 
+          if (onRefreshLocation) {
+             setIsRefreshing(true);
+             onRefreshLocation();
+             setTimeout(() => setIsRefreshing(false), 1000);
+          }
+          map.setView(center, 14); 
+        }}
+        className="p-4 rounded-full md:rounded-2xl shadow-xl border border-stone-200/50 backdrop-blur-md bg-white/90 dark:bg-stone-900/90 text-stone-600 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800 transition cursor-pointer flex items-center justify-center active:scale-95"
+        title="Recenter Map"
+      >
+        <MapPin className={`w-5 h-5 md:w-6 md:h-6 ${isRefreshing ? 'animate-bounce text-emerald-500' : ''}`} />
+      </button>
+    </div>
+  );
+};
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { isDark, toggle: toggleTheme } = useTheme();
@@ -77,6 +121,25 @@ const Dashboard: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [isPanelOpen, setIsPanelOpen] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+
+  /* map */
+  const [mapData, setMapData] = useState<any>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
+  const fetchLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLocation([pos.coords.latitude, pos.coords.longitude]),
+        (err) => console.error('Geolocation error:', err),
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    }
+  };
+
+  useEffect(() => {
+    fetchLocation();
+  }, []);
 
   /* work-proof engine */
   const [workProofActive, setWorkProofActive] = useState(false);
@@ -147,6 +210,26 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, [navigate, refreshKey]);
 
+  /* ─── Map data fetch ─────────────────────────────────────────────────── */
+  useEffect(() => {
+    const token = localStorage.getItem('kavachpay_token');
+    if (!token || !profile) return;
+    const fetchMapData = async () => {
+      try {
+        const city = profile?.city || 'Mumbai';
+        const r = await fetch(`${API_BASE_URL}/api/claim/map-data?city=${encodeURIComponent(city)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (r.ok) setMapData(await r.json());
+      } catch (err) {
+        console.error('Map fetch failed', err);
+      }
+    };
+    fetchMapData();
+    const interval = setInterval(fetchMapData, 60000);
+    return () => clearInterval(interval);
+  }, [profile?.city]);
+
   /* ─── Heartbeat engine ───────────────────────────────────────────────── */
   useEffect(() => {
     const token = localStorage.getItem('kavachpay_token');
@@ -170,7 +253,6 @@ const Dashboard: React.FC = () => {
         const r = await fetch(`${API_BASE_URL}/api/session/activity-stats`, { headers: { Authorization: `Bearer ${token}` } });
         if (r.ok) {
           const s = await r.json();
-          // FIX: show server-confirmed activeMinutes (heartbeat count), NOT sessionAgeMins
           setSessionActiveMinutes(s.activeMinutes || 0);
           setActivityStats({ ...s, localInteractions: interactionsCountRef.current, hiddenSwitches: hiddenSwitchCountRef.current });
         }
@@ -229,6 +311,7 @@ const Dashboard: React.FC = () => {
         const d = await r.json();
         setLatestClaim(d.claim);
         setClaims(prev => [d.claim, ...prev]);
+        setRefreshKey(k => k + 1); // trigger map refresh
       }
     } catch (err) { console.error('Simulation failed', err); }
     finally { setIsSimulating(false); }
@@ -245,7 +328,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-stone-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-stone-200 border-t-emerald-500 rounded-full animate-spin" />
-        <p className="text-stone-500 font-medium">Loading your dashboard...</p>
+        <p className="text-stone-500 font-medium">Loading map interface...</p>
       </div>
     </div>
   );
@@ -256,7 +339,6 @@ const Dashboard: React.FC = () => {
         <ShieldAlert className="w-16 h-16 text-rose-400 mx-auto mb-4" />
         <p className="text-rose-500 font-medium text-lg">Failed to load profile</p>
         <button onClick={() => { setLoading(true); setRefreshKey(v => v + 1); }} className="mt-4 px-6 py-2 bg-stone-200 text-stone-800 rounded-full font-medium hover:bg-stone-300 transition cursor-pointer">Retry</button>
-        <button onClick={() => navigate('/signin')} className="mt-4 ml-2 px-6 py-2 bg-stone-900 text-white rounded-full font-medium hover:bg-stone-800 transition cursor-pointer">Sign In Again</button>
       </div>
     </div>
   );
@@ -264,593 +346,415 @@ const Dashboard: React.FC = () => {
   const paidClaims = claims.filter(c => c.status === 'PAID');
   const totalPaidOut = paidClaims.reduce((sum, c) => sum + (c.payoutAmount || 0), 0);
   const daysLeft = policy ? Math.max(0, Math.round((new Date(policy.endDate).getTime() - Date.now()) / 86400000)) : 0;
+  
+  const mapCenter = userLocation || (mapData?.disruptionZones?.[0] 
+    ? [mapData.disruptionZones[0].lat, mapData.disruptionZones[0].lon] 
+    : [19.076, 72.877]); // Default to Mumbai
 
   /* ─── RENDER ─────────────────────────────────────────────────────────── */
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-900">
+    <main className={`h-screen w-screen overflow-hidden relative flex flex-col ${isDark ? 'dark bg-stone-900 text-stone-100' : 'bg-stone-50 text-stone-900'}`}>
+      
+      {/* ── FULL SCREEN MAP ──────────────────────────────────────────── */}
+      <div className="absolute inset-0 z-0">
+        <MapContainer center={mapCenter as any} zoom={14} zoomControl={false} style={{ width: '100%', height: '100%' }}>
+          <MapUpdater center={mapCenter} />
+          <MapRecenter center={mapCenter} isPanelOpen={isPanelOpen} onRefreshLocation={fetchLocation} />
+          <TileLayer
+            url={isDark 
+              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"}
+            attribution='&copy; OpenStreetMap &copy; CARTO'
+          />
+          {mapData?.disruptionZones?.map((z: any, i: number) => (
+            <React.Fragment key={i}>
+              <Circle
+                center={[z.lat, z.lon]}
+                radius={z.radiusMeters}
+                pathOptions={{ color: '#e11d48', fillColor: '#e11d48', fillOpacity: 0.12, weight: 2 }}
+              >
+                <Popup className="custom-popup">
+                  <div className="p-1">
+                    <h3 className="font-bold text-stone-900 text-sm mb-1">{z.label}</h3>
+                    <p className="text-xs text-stone-500 my-0.5">Score: <span className="font-bold text-rose-600">{Math.round(z.score * 100)}%</span></p>
+                    <p className="text-xs text-stone-500 my-0.5">Type: {z.type}</p>
+                  </div>
+                </Popup>
+              </Circle>
+              <Marker position={[z.lat, z.lon]} icon={createLabelIcon(z.label)} />
+            </React.Fragment>
+          ))}
+          {mapData?.fraudClusters?.map((c: any, i: number) => {
+            const col = c.riskLevel === 'high' ? '#e11d48' : '#d97706';
+            return (
+              <CircleMarker
+                key={'c'+i}
+                center={[c.lat, c.lon]}
+                radius={14 + c.count}
+                pathOptions={{ color: col, fillColor: col, fillOpacity: 0.75, weight: 2 }}
+              >
+                <Popup className="custom-popup">
+                  <div className="p-1">
+                    <h3 className="font-bold text-stone-900 text-sm mb-1">Fraud Ring</h3>
+                    <p className="text-xs text-stone-500 my-0.5"><b>{c.count}</b> claims</p>
+                    <p className="text-xs text-stone-500 my-0.5">Risk: <span className={`font-bold ${c.riskLevel === 'high' ? 'text-rose-600' : 'text-amber-600'}`}>{c.riskLevel.toUpperCase()}</span></p>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            );
+          })}
+          
+          {/* User Heartbeat */}
+          {workProofActive && (
+            <Marker position={(userLocation || [mapCenter[0] - 0.015, mapCenter[1] - 0.01]) as any} icon={L.divIcon({
+              html: `<div class="relative flex items-center justify-center w-6 h-6"><div class="absolute w-full h-full bg-emerald-400 rounded-full animate-ping opacity-75"></div><div class="relative w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div></div>`,
+              className: '',
+              iconAnchor: [12, 12]
+            })} />
+          )}
+        </MapContainer>
+      </div>
 
-      {/* ── Nav ───────────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-stone-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <button onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer">
-            <img src="/KavachPay_logo.png" alt="KavachPay" className="w-9 h-9 object-contain" />
-            <span className="text-xl font-bold tracking-tight">KavachPay</span>
-          </button>
-          <div className="flex items-center gap-3">
+      {/* ── FLOATING OVERLAYS (HUD) ──────────────────────────────────── */}
+      
+      {/* 1. Header Navbar */}
+      <nav className="absolute top-0 inset-x-0 z-10 px-4 py-4 md:px-6 pointer-events-none">
+        <div className="max-w-7xl mx-auto flex items-start justify-between">
+          <div className="flex flex-col gap-2 pointer-events-auto">
+            <button onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer bg-white/90 backdrop-blur-md px-3 py-2 rounded-2xl shadow-sm border border-stone-200/50 w-fit">
+              <img src="/KavachPay_logo.png" alt="KavachPay" className="w-7 h-7 object-contain" />
+              <span className="text-lg font-bold tracking-tight text-stone-900">KavachPay</span>
+            </button>
+            
+            {/* Live Pill */}
+            <div className={`flex flex-col gap-1.5 p-3 rounded-2xl shadow-sm border border-stone-200/50 backdrop-blur-md max-w-xs ${isDark ? 'bg-stone-900/90' : 'bg-white/90'}`}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <Radar className={`w-4 h-4 ${workProofActive ? 'text-emerald-500' : 'text-stone-400'}`} />
+                  <span className={`text-xs font-bold ${workProofActive ? 'text-emerald-600' : 'text-stone-500'}`}>
+                    {workProofActive ? 'BEACON ACTIVE' : 'INACTIVE'}
+                  </span>
+                </div>
+                {workProofActive && (
+                  <div className="flex items-center gap-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  </div>
+                )}
+              </div>
+              {sessionHash && (
+                <div className="text-[10px] font-mono text-stone-500 break-all bg-stone-100/50 dark:bg-stone-800/50 p-1.5 rounded-lg border border-stone-200/50 dark:border-stone-700/50 leading-tight">
+                  {sessionHash}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2.5 pointer-events-auto">
             <button
               onClick={toggleTheme}
-              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              className="p-2.5 rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 transition cursor-pointer"
+              className={`p-2.5 rounded-xl shadow-sm border border-stone-200/50 backdrop-blur-md transition cursor-pointer ${isDark ? 'bg-stone-900/90 text-stone-400' : 'bg-white/90 text-stone-600'}`}
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            <button className="p-2.5 rounded-xl bg-stone-100 text-stone-500 hover:bg-stone-200 transition cursor-pointer">
-              <Bell className="w-5 h-5" />
-            </button>
             <button
               onClick={() => setIsProfileOpen(true)}
-              className="flex items-center gap-2.5 bg-stone-100 hover:bg-stone-200 px-4 py-2 rounded-full transition cursor-pointer"
+              className={`flex items-center gap-2 p-1.5 pr-3 rounded-full shadow-sm border border-stone-200/50 backdrop-blur-md transition cursor-pointer ${isDark ? 'bg-stone-900/90' : 'bg-white/90'}`}
             >
-              <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                <User className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <User className="w-4 h-4" />
               </div>
-              <span className="font-semibold text-stone-700 hidden sm:block">{profile.fullName.split(' ')[0]}</span>
+              <span className={`text-sm font-semibold hidden sm:block ${isDark ? 'text-stone-200' : 'text-stone-800'}`}>
+                {profile.fullName.split(' ')[0]}
+              </span>
             </button>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-
-        {/* ── Page header ─────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-7">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 mb-0.5">
-              {(() => {
-                const h = new Date().getHours();
-                return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-              })()}, {profile.fullName.split(' ')[0]} 👋
-            </h1>
-            <p className="text-stone-500 text-sm">Here's your protection dashboard</p>
+      {/* 2. Weather/Policy Index (Top Right below Header) */}
+      <div className="absolute top-20 right-4 md:right-6 z-10 hidden sm:flex flex-col gap-3 pointer-events-none">
+        {/* Protection Status */}
+        <div className={`p-4 rounded-2xl shadow-sm border border-stone-200/50 backdrop-blur-md pointer-events-auto ${isDark ? 'bg-stone-900/90' : 'bg-white/90'}`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${daysLeft > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold uppercase tracking-wide ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>Protection Status</p>
+              <p className={`text-sm font-bold ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
+                {daysLeft > 0 ? `${daysLeft} Days Left` : 'No Policy'}
+              </p>
+            </div>
           </div>
-          {policy && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full self-start sm:self-auto">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-sm font-semibold text-emerald-700">Policy Active</span>
+        </div>
+
+        {/* Local Weather */}
+        <div className={`p-4 rounded-2xl shadow-sm border border-stone-200/50 backdrop-blur-md pointer-events-auto ${isDark ? 'bg-stone-900/90' : 'bg-white/90'}`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mapData?.disruptionZones?.length > 0 ? 'bg-rose-100 text-rose-600' : 'bg-sky-100 text-sky-600'}`}>
+              {mapData?.disruptionZones?.length > 0 ? <CloudLightning className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </div>
+            <div>
+              <p className={`text-[10px] font-bold uppercase tracking-wide ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>Local Weather</p>
+              <p className={`text-sm font-bold ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
+                {mapData?.disruptionZones?.length > 0 ? 'Severe Alert' : 'Clear Skies'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── BOTTOM SHEET / SIDE PANEL ────────────────────────────────── */}
+      <div 
+        className={`absolute z-20 flex flex-col transition-all duration-500 ease-in-out shadow-2xl
+          ${isDark ? 'bg-stone-900/95 border-stone-800' : 'bg-white/95 border-stone-200'} backdrop-blur-xl border
+          
+          /* Mobile layout (bottom sheet) */
+          inset-x-0 bottom-0 rounded-t-[2.5rem]
+          ${isPanelOpen ? 'h-[75vh]' : 'h-[12vh]'}
+          
+          /* Desktop layout (side panel) */
+          md:inset-auto md:left-6 md:top-[11rem] md:bottom-6 md:w-[420px] md:rounded-[2rem] md:h-auto
+        `}
+      >
+        {/* Drag handle & Header */}
+        <div 
+          className="px-6 py-4 cursor-pointer flex-shrink-0 relative group"
+          onClick={() => setIsPanelOpen(!isPanelOpen)}
+        >
+          <div className={`w-12 h-1.5 rounded-full mx-auto mb-4 md:hidden transition-colors ${isDark ? 'bg-stone-700 group-hover:bg-stone-600' : 'bg-stone-300 group-hover:bg-stone-400'}`} />
+          <div className="flex items-center justify-between">
+            <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>Dashboard</h2>
+            <button className="md:hidden p-2 -mr-2 text-stone-400">
+              {isPanelOpen ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+            </button>
+            <div className="hidden md:flex gap-1 p-1 bg-stone-100 dark:bg-stone-800 rounded-xl">
+               {([
+                { id: 'overview', icon: <Activity className="w-4 h-4" /> },
+                { id: 'claims', icon: <TrendingUp className="w-4 h-4" /> },
+                { id: 'sessions', icon: <History className="w-4 h-4" /> },
+              ] as Array<{ id: TabId; icon: React.ReactNode }>).map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id); }}
+                  className={`p-2 rounded-lg transition-all ${activeTab === tab.id ? 'bg-white dark:bg-stone-700 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'}`}
+                >
+                  {tab.icon}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Mobile Tab Switcher */}
+          <div className="flex md:hidden gap-2 mt-4 overflow-x-auto pb-1 no-scrollbar">
+            {([
+              { id: 'overview', label: 'Overview' },
+              { id: 'claims', label: 'Claims' },
+              { id: 'sessions', label: 'Sessions' },
+            ] as Array<{ id: TabId; label: string }>).map(tab => (
+              <button
+                key={tab.id}
+                onClick={(e) => { e.stopPropagation(); setActiveTab(tab.id); setIsPanelOpen(true); }}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
+                  activeTab === tab.id
+                    ? (isDark ? 'bg-stone-800 text-white' : 'bg-stone-900 text-white')
+                    : (isDark ? 'bg-stone-800/50 text-stone-400' : 'bg-stone-100 text-stone-500')
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Panel Content (Scrollable) */}
+        <div className={`flex-1 overflow-y-auto px-6 pb-24 md:pb-6 custom-scrollbar transition-opacity duration-300 ${isPanelOpen ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
+          
+          {/* ── OVERVIEW TAB ── */}
+          {activeTab === 'overview' && (
+            <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              
+              {/* Coverage / Policy */}
+              <div className={`rounded-2xl p-5 border ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                      <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className={`text-sm font-bold ${isDark ? 'text-stone-200' : 'text-stone-900'}`}>Active Policy</h3>
+                      <p className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>{policy?.planTier || 'No Plan'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {policy ? (
+                  <>
+                    <CoverageBar used={totalPaidOut} total={policy.coverageAmount || 0} />
+                    <button onClick={() => navigate('/policy')} className={`w-full mt-4 py-2.5 rounded-xl text-sm font-semibold transition ${isDark ? 'bg-stone-700 hover:bg-stone-600 text-white' : 'bg-stone-100 hover:bg-stone-200 text-stone-800'}`}>
+                      Manage Coverage
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={() => navigate('/policy')} className="w-full bg-emerald-500 text-white px-4 py-3 rounded-xl font-semibold hover:bg-emerald-400 transition text-sm">
+                    Activate Protection
+                  </button>
+                )}
+              </div>
+
+              {/* Activity Stats Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: <Activity className="w-4 h-4 text-emerald-500" />, label: 'Active Min', val: `${sessionActiveMinutes} min` },
+                  { icon: <Timer className="w-4 h-4 text-indigo-500" />, label: 'Total Session', val: `${activityStats.sessionAgeMins || 0} min` },
+                  { icon: <Zap className="w-4 h-4 text-amber-500" />, label: 'Heartbeats', val: activityStats.heartbeatCount || 0 },
+                  { icon: <Cpu className="w-4 h-4 text-blue-500" />, label: 'Beat Gap', val: fmtMs(activityStats.avgHeartbeatGapMs) },
+                ].map((s, i) => (
+                  <div key={i} className={`rounded-xl p-3.5 border ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-white border-stone-100 shadow-sm'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {s.icon}
+                      <span className={`text-[10px] font-bold uppercase ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>{s.label}</span>
+                    </div>
+                    <p className={`text-lg font-bold leading-none ${isDark ? 'text-stone-200' : 'text-stone-900'}`}>{s.val}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Work-Proof Diagnostics */}
+              <div className={`rounded-2xl p-5 border ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                    <Radar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className={`text-sm font-bold ${isDark ? 'text-stone-200' : 'text-stone-900'}`}>Work-Proof Diagnostics</h3>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Jitter', val: fmtMs(activityStats.jitterMs) },
+                    { label: 'Inputs', val: activityStats.localInteractions || 0 },
+                    { label: 'Switches', val: activityStats.hiddenSwitches || 0 },
+                  ].map((s, i) => (
+                    <div key={i} className={`rounded-xl p-3 border ${isDark ? 'bg-stone-800 border-stone-700' : 'bg-stone-50 border-stone-100'}`}>
+                      <p className={`text-[10px] font-bold uppercase mb-1 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>{s.label}</p>
+                      <p className={`text-sm font-bold ${isDark ? 'text-stone-200' : 'text-stone-900'}`}>{s.val}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recent Claims Mini */}
+              <div className={`rounded-2xl p-5 border ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-white border-stone-100 shadow-sm'}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className={`text-sm font-bold ${isDark ? 'text-stone-200' : 'text-stone-900'}`}>Recent Claims</h3>
+                  <button onClick={() => setActiveTab('claims')} className="text-xs text-emerald-600 font-semibold">View All</button>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {claims.slice(0,2).map(claim => (
+                    <div key={claim.id} className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm font-medium truncate ${isDark ? 'text-stone-300' : 'text-stone-800'}`}>{(claim.triggerEvent || '').replace(/_/g, ' ')}</p>
+                        <p className={`text-[10px] ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>{fmt(claim.createdAt)}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${statusColor(claim.status).bg} ${statusColor(claim.status).text}`}>
+                        {claim.status}
+                      </span>
+                    </div>
+                  ))}
+                  {claims.length === 0 && <p className="text-sm text-stone-500">No recent claims.</p>}
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* ── CLAIMS TAB ── */}
+          {activeTab === 'claims' && (
+            <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {claims.length === 0 ? (
+                <div className={`p-8 rounded-2xl text-center border ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-stone-50 border-stone-200/50'}`}>
+                  <ShieldAlert className="w-10 h-10 text-stone-400 mx-auto mb-3" />
+                  <p className={`font-medium ${isDark ? 'text-stone-300' : 'text-stone-600'}`}>No claims filed yet</p>
+                  <p className="text-xs text-stone-500 mt-1">Simulate a disruption to test</p>
+                </div>
+              ) : claims.map(claim => (
+                <div key={claim.id} className={`rounded-xl p-4 border ${isDark ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100 shadow-sm'}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${statusColor(claim.status).bg} ${statusColor(claim.status).text}`}>
+                      {claim.status}
+                    </span>
+                    <span className="text-[10px] text-stone-400">{fmt(claim.createdAt)}</span>
+                  </div>
+                  <p className={`text-sm font-semibold mb-1 ${isDark ? 'text-stone-200' : 'text-stone-800'}`}>{(claim.triggerEvent || '').replace(/_/g, ' ')}</p>
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center gap-1.5">
+                      {claim.isChainValid ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-400" />}
+                      <span className="text-[10px] text-stone-500">{claim.isChainValid ? 'Chain OK' : 'Invalid'}</span>
+                    </div>
+                    {claim.payoutAmount > 0 && <p className="text-sm font-bold text-emerald-600">₹{claim.payoutAmount}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── SESSIONS TAB ── */}
+          {activeTab === 'sessions' && (
+            <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {sessionsLoading ? (
+                <div className="flex justify-center p-8"><div className="w-8 h-8 border-4 border-stone-200 border-t-emerald-500 rounded-full animate-spin" /></div>
+              ) : sessionHistory.length === 0 ? (
+                <div className={`p-8 rounded-2xl text-center border ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-stone-50 border-stone-200/50'}`}>
+                  <History className="w-10 h-10 text-stone-400 mx-auto mb-3" />
+                  <p className={`font-medium ${isDark ? 'text-stone-300' : 'text-stone-600'}`}>No sessions recorded</p>
+                </div>
+              ) : sessionHistory.map(s => (
+                <div key={s.id} className={`rounded-xl p-4 border flex items-center justify-between ${isDark ? 'bg-stone-800 border-stone-700' : 'bg-white border-stone-100 shadow-sm'}`}>
+                  <div>
+                    <p className={`text-sm font-semibold ${isDark ? 'text-stone-200' : 'text-stone-800'}`}>{fmt(s.startTime)}</p>
+                    <div className="flex items-center gap-3 mt-1.5 text-[10px] text-stone-500">
+                      <span className="flex items-center gap-1"><Activity className="w-3 h-3 text-emerald-500" /> {s.activeMinutes}m</span>
+                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {s.ipCity || '—'}</span>
+                    </div>
+                  </div>
+                  {s.isChainValid ? <Link2 className="w-4 h-4 text-emerald-500" /> : <WifiOff className="w-4 h-4 text-rose-400" />}
+                </div>
+              ))}
             </div>
           )}
         </div>
-
-        {/* ── Stats row ───────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-7">
-          {[
-            {
-              icon: <Activity className={`w-5 h-5 ${workProofActive ? 'text-emerald-600' : 'text-stone-400'}`} />,
-              bg: 'bg-emerald-100',
-              value: `${sessionActiveMinutes} min`,
-              label: 'Active Session',
-              dot: true,
-              dotOn: workProofActive,
-            },
-            {
-              icon: <Timer className="w-5 h-5 text-indigo-600" />,
-              bg: 'bg-indigo-100',
-              value: `${activityStats.sessionAgeMins ?? 0} min`,
-              label: 'Total Session',
-            },
-            {
-              icon: <Zap className="w-5 h-5 text-blue-600" />,
-              bg: 'bg-blue-100',
-              value: activityStats.heartbeatCount || 0,
-              label: 'Heartbeats',
-            },
-            {
-              icon: <Clock className="w-5 h-5 text-amber-600" />,
-              bg: 'bg-amber-100',
-              value: `${daysLeft}d`,
-              label: 'Policy Days Left',
-            },
-            {
-              icon: <ShieldCheck className="w-5 h-5 text-purple-600" />,
-              bg: 'bg-purple-100',
-              value: policy?.planTier || 'None',
-              label: 'Plan Tier',
-            },
-          ].map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center`}>{s.icon}</div>
-                {s.dot && <div className={`w-2 h-2 rounded-full ml-auto ${s.dotOn ? 'bg-emerald-500 animate-pulse' : 'bg-stone-300'}`} />}
-              </div>
-              <p className="text-xl sm:text-2xl font-bold text-stone-900 leading-none">{s.value}</p>
-              <p className="text-xs text-stone-500 mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ── Tab bar ─────────────────────────────────────────────────── */}
-        <div className="flex gap-1 bg-stone-100 p-1 rounded-2xl w-fit mb-7">
-          {([
-            { id: 'overview', label: 'Overview', icon: <ShieldCheck className="w-3.5 h-3.5" /> },
-            { id: 'sessions', label: 'Sessions', icon: <History className="w-3.5 h-3.5" /> },
-            { id: 'claims',   label: 'Claims',   icon: <TrendingUp className="w-3.5 h-3.5" /> },
-            { id: 'map',      label: 'Live Map', icon: <MapPin className="w-3.5 h-3.5" /> },
-          ] as Array<{ id: TabId; label: string; icon: React.ReactNode }>).map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? 'bg-white text-stone-900 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-700'
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* ── OVERVIEW TAB ─────────────────────────────────────────── */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        {activeTab === 'overview' && (
-          <div className="grid lg:grid-cols-5 gap-6">
-
-            {/* ── Left Column (3/5) ─── Policy + Work-Proof ─────────── */}
-            <div className="lg:col-span-3 flex flex-col gap-6">
-
-              {/* Policy card */}
-              <div className="bg-white rounded-3xl p-6 border border-stone-100 shadow-sm">
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                      <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <h2 className="text-base font-bold text-stone-900">Your Policy</h2>
-                      <p className="text-xs text-stone-400">Protection details</p>
-                    </div>
-                  </div>
-                  {policy && (
-                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
-                      {policy.planTier}
-                    </span>
-                  )}
-                </div>
-
-                {policy ? (
-                  <>
-                    <div className="grid grid-cols-3 gap-3 mb-5">
-                      {[
-                        { label: 'Coverage', value: `₹${policy.coverageAmount?.toLocaleString()}` },
-                        { label: 'Premium', value: `₹${policy.premiumPaid}` },
-                        { label: 'Claims Paid', value: paidClaims.length },
-                      ].map((item, i) => (
-                        <div key={i} className="bg-stone-50 rounded-xl p-3 text-center">
-                          <p className="text-xs text-stone-400 mb-1">{item.label}</p>
-                          <p className="text-lg font-bold text-stone-900">{item.value}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Coverage used bar */}
-                    <CoverageBar used={totalPaidOut} total={policy.coverageAmount || 0} />
-
-                    <div className="flex gap-2 mt-5">
-                      <button
-                        onClick={() => navigate('/policy')}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-stone-900 text-white text-sm font-semibold rounded-xl hover:bg-stone-800 transition cursor-pointer"
-                      >
-                        <Wallet className="w-4 h-4" />
-                        Manage Policy
-                      </button>
-                      <button
-                        onClick={() => navigate('/claims')}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-stone-100 text-stone-700 text-sm font-semibold rounded-xl hover:bg-stone-200 transition cursor-pointer"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                        View Claims
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-stone-400 mb-4 text-sm">You have no active policy</p>
-                    <button onClick={() => navigate('/policy')} className="w-full bg-emerald-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-400 transition cursor-pointer">
-                      Get Protected
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Work-Proof live block */}
-              <div className="bg-white rounded-3xl p-6 border border-stone-100 shadow-sm">
-                <div className="flex items-center justify-between mb-5">
-                  <div className="flex items-center gap-3">
-                    <img src="/KavachPay_logo.png" alt="Protocol" className="w-10 h-10 object-contain" />
-                    <div>
-                      <h2 className="text-base font-bold text-stone-900">Work-Proof Protocol</h2>
-                      <p className="text-xs text-stone-400">Real-time activity verification</p>
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${workProofActive ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
-                    {workProofActive ? '⬤ LIVE' : 'INACTIVE'}
-                  </span>
-                </div>
-
-                {sessionHash && (
-                  <div className="bg-stone-50 rounded-xl p-3 mb-5">
-                    <p className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider mb-1">Live Chain Hash</p>
-                    <p className="text-xs font-mono text-stone-600 break-all">{sessionHash}</p>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-            { label: 'Beat Gap', value: fmtMs(activityStats.avgHeartbeatGapMs), color: 'bg-stone-50' },
-                    { label: 'Jitter',   value: fmtMs(activityStats.jitterMs),           color: 'bg-stone-50' },
-                    { label: 'Inputs',   value: activityStats.localInteractions || 0,  color: 'bg-blue-50' },
-                    { label: 'Switches', value: activityStats.hiddenSwitches || 0,     color: 'bg-amber-50' },
-                  ].map((cell, i) => (
-                    <div key={i} className={`${cell.color} rounded-xl p-3`}>
-                      <p className="text-[10px] font-semibold text-stone-400 uppercase mb-0.5">{cell.label}</p>
-                      <p className="text-lg font-bold text-stone-900">{cell.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* ── Right Column (2/5) ─── Insights + Claims ──────────── */}
-            <div className="lg:col-span-2 flex flex-col gap-6">
-
-              {/* Insights cards */}
-              <div>
-                <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider mb-3">Insights</h3>
-                <div className="flex flex-col gap-3">
-                  <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
-                        <TrendingUp className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-stone-900">Claim Overview</p>
-                        <p className="text-xs text-stone-400">{claims.length} total · {paidClaims.length} approved</p>
-                      </div>
-                    </div>
-                    {latestClaim && (
-                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-stone-100">
-                        <p className="text-xs text-stone-400">Latest</p>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${statusColor(latestClaim.status).bg} ${statusColor(latestClaim.status).text}`}>
-                          {latestClaim.status}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center">
-                        <Clock className="w-4 h-4 text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-stone-900">Coverage Status</p>
-                        <p className="text-xs text-stone-400">{daysLeft > 0 ? `${daysLeft} days remaining` : 'No active policy'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
-                        <TrendingUp className="w-4 h-4 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-stone-900">Total Paid Out</p>
-                        <p className="text-xs text-stone-400">₹{totalPaidOut.toLocaleString()} across {paidClaims.length} claims</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent claims feed */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider">Recent Claims</h3>
-                  <button onClick={() => navigate('/claims')} className="text-xs text-emerald-600 font-semibold hover:underline cursor-pointer">View all</button>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {claims.slice(0, 3).length === 0 ? (
-                    <div className="bg-white rounded-2xl p-4 border border-stone-100 text-center">
-                      <p className="text-stone-400 text-sm">No claims yet</p>
-                    </div>
-                  ) : claims.slice(0, 3).map((claim) => (
-                    <div key={claim.id} className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${statusColor(claim.status).bg} ${statusColor(claim.status).text}`}>
-                          {claim.status}
-                        </span>
-                        <p className="text-xs text-stone-400">{new Date(claim.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</p>
-                      </div>
-                      <p className="text-xs font-medium text-stone-600 truncate">
-                        {(claim.triggerEvent || '').replace(/_/g, ' ')}
-                      </p>
-                      {claim.payoutAmount > 0 && (
-                        <p className="text-sm font-bold text-emerald-600 mt-1">₹{claim.payoutAmount}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Start a claim */}
-              <button
-                onClick={triggerSimulation}
-                disabled={isSimulating || !policy}
-                id="simulate-disruption-btn"
-                className="w-full flex items-center justify-center gap-2 bg-stone-900 text-white font-semibold py-4 rounded-2xl hover:bg-stone-800 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                <Cloud className="w-5 h-5" />
-                {isSimulating ? 'Simulating Disruption...' : 'Simulate Disruption'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* ── SESSIONS TAB ─────────────────────────────────────────── */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        {activeTab === 'sessions' && (
-          <div>
-            {/* Current session summary */}
-            <div className="grid sm:grid-cols-3 gap-4 mb-6">
-              {[
-                { icon: <Timer className="w-4 h-4 text-emerald-600" />, bg: 'bg-emerald-100', label: 'Verified Minutes', value: `${sessionActiveMinutes} min`, note: 'Server-confirmed heartbeats' },
-                { icon: <Cpu className="w-4 h-4 text-blue-600" />, bg: 'bg-blue-100', label: 'Beat Gap', value: fmtMs(activityStats.avgHeartbeatGapMs), note: 'Avg gap between heartbeats' },
-                { icon: <Zap className="w-4 h-4 text-amber-600" />, bg: 'bg-amber-100', label: 'Jitter', value: fmtMs(activityStats.jitterMs), note: 'Timing variance (human = high)' },
-              ].map((s, i) => (
-                <div key={i} className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
-                  <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>{s.icon}</div>
-                  <p className="text-2xl font-bold text-stone-900">{s.value}</p>
-                  <p className="text-sm font-medium text-stone-700 mt-0.5">{s.label}</p>
-                  <p className="text-xs text-stone-400 mt-0.5">{s.note}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Session history table */}
-            <div className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
-                <h3 className="font-bold text-stone-900">Session History</h3>
-                <p className="text-xs text-stone-400">Last 15 sessions · chain integrity verified</p>
-              </div>
-
-              {sessionsLoading ? (
-                <div className="flex items-center justify-center py-16">
-                  <div className="w-8 h-8 border-4 border-stone-200 border-t-emerald-500 rounded-full animate-spin" />
-                </div>
-              ) : sessionHistory.length === 0 ? (
-                <div className="text-center py-16">
-                  <History className="w-12 h-12 text-stone-200 mx-auto mb-3" />
-                  <p className="text-stone-400 font-medium">No sessions recorded yet</p>
-                  <p className="text-stone-300 text-sm mt-1">Sessions are created automatically when you stay active on the dashboard</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-xs font-semibold text-stone-400 uppercase tracking-wider bg-stone-50">
-                        <th className="px-6 py-3 text-left">Started</th>
-                        <th className="px-4 py-3 text-left">Duration</th>
-                        <th className="px-4 py-3 text-left">Beats</th>
-                        <th className="px-4 py-3 text-left">IP City</th>
-                        <th className="px-4 py-3 text-center">Chain</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sessionHistory.map((s, i) => (
-                        <tr key={s.id} className={`border-t border-stone-50 ${i % 2 === 0 ? 'bg-white' : 'bg-stone-50/30'} hover:bg-emerald-50/30 transition`}>
-                          <td className="px-6 py-3.5">
-                            <p className="text-sm font-medium text-stone-900">{fmt(s.startTime)}</p>
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <span className="text-sm text-stone-700 font-medium">{s.activeMinutes} min</span>
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <span className="text-sm text-stone-700">{s.heartbeatCount}</span>
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <span className="text-sm text-stone-600">{s.ipCity || '—'}</span>
-                          </td>
-                          <td className="px-4 py-3.5 text-center">
-                            {s.isChainValid ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
-                                <Link2 className="w-3 h-3" /> Valid
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-100 text-rose-700 text-xs font-bold rounded-full">
-                                <WifiOff className="w-3 h-3" /> Broken
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* ── CLAIMS TAB ───────────────────────────────────────────── */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        {activeTab === 'claims' && (
-          <div>
-            {/* Summary row */}
-            <div className="grid sm:grid-cols-3 gap-4 mb-6">
-              {[
-                { label: 'Total Claims', value: claims.length, color: 'text-stone-900' },
-                { label: 'Approved', value: paidClaims.length, color: 'text-emerald-600' },
-                { label: 'Total Paid Out', value: `₹${totalPaidOut.toLocaleString()}`, color: 'text-emerald-600' },
-              ].map((item, i) => (
-                <div key={i} className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm text-center">
-                  <p className={`text-3xl font-bold ${item.color}`}>{item.value}</p>
-                  <p className="text-sm text-stone-400 mt-1">{item.label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Claim cards */}
-            <div className="flex flex-col gap-3">
-              {claims.length === 0 ? (
-                <div className="bg-white rounded-3xl p-12 border border-stone-100 text-center">
-                  <ShieldAlert className="w-12 h-12 text-stone-200 mx-auto mb-3" />
-                  <p className="text-stone-400 font-medium">No claims filed yet</p>
-                  <p className="text-stone-300 text-sm mt-1">Use "Simulate Disruption" on the Overview tab to test a claim</p>
-                </div>
-              ) : claims.map((claim) => (
-                <div key={claim.id} className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${statusColor(claim.status).bg} ${statusColor(claim.status).text}`}>
-                          {claim.status}
-                        </span>
-                        <span className="text-xs text-stone-400">{fmt(claim.createdAt)}</span>
-                      </div>
-                      <p className="text-sm font-semibold text-stone-800 truncate">
-                        {(claim.triggerEvent || '').replace(/_/g, ' ')}
-                      </p>
-                      {claim.reviewerNotes && (
-                        <p className="text-xs text-stone-400 mt-1 line-clamp-1">{claim.reviewerNotes}</p>
-                      )}
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      {claim.payoutAmount > 0 ? (
-                        <p className="text-lg font-bold text-emerald-600">₹{claim.payoutAmount}</p>
-                      ) : (
-                        <p className="text-sm text-stone-300 font-medium">₹0</p>
-                      )}
-                      <div className="flex items-center justify-end gap-1 mt-1">
-                        {claim.isChainValid
-                          ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                          : <AlertCircle className="w-3.5 h-3.5 text-rose-400" />}
-                        <span className="text-xs text-stone-400">{claim.isChainValid ? 'Chain OK' : 'Chain broken'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => setActiveTab('overview')}
-              className="mt-5 w-full flex items-center justify-center gap-2 bg-stone-900 text-white font-semibold py-4 rounded-2xl hover:bg-stone-800 transition cursor-pointer"
-            >
-              <Cloud className="w-5 h-5" />
-              Simulate Disruption
-            </button>
-          </div>
-        )}
-
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* ── MAP TAB ──────────────────────────────────────────────── */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        {activeTab === 'map' && (
-          <div>
-            <div className="flex items-start justify-between mb-4 gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-stone-900">Live Disruption Map</h2>
-                <p className="text-sm text-stone-500 mt-0.5">
-                  Real-time zones and fraud clusters near <strong>{profile?.city || 'your city'}</strong>
-                </p>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-stone-500 flex-shrink-0 pt-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-3 rounded-full bg-rose-400" />Disruption Zone
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-3 h-3 rounded-full bg-amber-400" />Fraud Cluster
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl border border-stone-100 shadow-sm overflow-hidden" style={{ height: 520 }}>
-              <iframe
-                key={activeTab}
-                title="kavachpay-disruption-map"
-                style={{ width: '100%', height: '100%', border: 'none' }}
-                srcDoc={`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
-  <style>
-    html,body,#map{height:100%;margin:0;padding:0;font-family:-apple-system,sans-serif;}
-    .lp h3{font-size:14px;font-weight:700;margin:0 0 4px;color:#1c1917;}
-    .lp p{font-size:12px;margin:2px 0;color:#78716c;}
-    .lp .red{color:#e11d48;font-weight:700;}
-    .lp .amb{color:#d97706;font-weight:700;}
-  </style>
-</head>
-<body><div id="map"></div>
-<script>
-  var map=L.map('map',{zoomControl:true,attributionControl:false}).setView([19.076,72.877],12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
-
-  var TOKEN='${localStorage.getItem('kavachpay_token')||''}';
-  var CITY='${profile?.city||'Mumbai'}';
-  var API='${API_BASE_URL}';
-
-  fetch(API+'/api/claim/map-data?city='+encodeURIComponent(CITY),{headers:{'Authorization':'Bearer '+TOKEN}})
-    .then(function(r){return r.ok?r.json():Promise.reject('API error');})
-    .then(function(data){
-      (data.disruptionZones||[]).forEach(function(z){
-        L.circle([z.lat,z.lon],{radius:z.radiusMeters,color:'#e11d48',fillColor:'#e11d48',fillOpacity:.12,weight:2})
-         .addTo(map).bindPopup('<div class="lp"><h3>'+z.label+'</h3><p>Score: <span class="red">'+Math.round(z.score*100)+'%</span></p><p>Type: '+z.type+'</p><p>Radius: '+(z.radiusMeters/1000).toFixed(1)+' km</p></div>');
-        L.marker([z.lat,z.lon],{icon:L.divIcon({html:'<div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700;color:#e11d48;white-space:nowrap;">'+z.label+'</div>',iconAnchor:[0,0],className:''})}).addTo(map);
-      });
-      (data.fraudClusters||[]).forEach(function(c){
-        var col=c.riskLevel==='high'?'#e11d48':'#d97706';
-        L.circleMarker([c.lat,c.lon],{radius:14+c.count,color:col,fillColor:col,fillOpacity:.75,weight:2})
-         .addTo(map).bindPopup('<div class="lp"><h3>Fraud Ring Cluster</h3><p><b>'+c.count+'</b> suspicious claims</p><p>Risk: <span class="'+(c.riskLevel==='high'?'red':'amb')+'">'+c.riskLevel.toUpperCase()+'</span></p></div>');
-      });
-      if(data.activeWorkers){
-        var info=L.control({position:'topright'});
-        info.onAdd=function(){var d=L.DomUtil.create('div');d.style.cssText='background:#fff;border:1px solid #e7e5e4;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;color:#44403c;box-shadow:0 2px 8px rgba(0,0,0,.07);';d.innerHTML='● '+data.activeWorkers+' Active Workers';return d;};
-        info.addTo(map);
-      }
-      if((data.disruptionZones||[]).length>0)map.setView([data.disruptionZones[0].lat,data.disruptionZones[0].lon],12);
-    })
-    .catch(function(){
-      L.circle([19.076,72.877],{radius:3000,color:'#e11d48',fillColor:'#e11d48',fillOpacity:.12,weight:2}).addTo(map)
-       .bindPopup('<div class="lp"><h3>Demo Zone (API unavailable)</h3><p>Start the backend to see real data</p></div>');
-    });
-<\/script>
-</body></html>`}
-              />
-            </div>
-            <p className="text-xs text-stone-400 mt-3 text-center">
-              Map refreshes on tab open · Disruption zones sourced from Pillar 2 environmental consensus model
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* ── Profile sidebar ──────────────────────────────────────────── */}
+      {/* ── FLOATING ACTION BUTTON (Simulate Disruption) ── */}
+      <div className={`absolute right-20 md:right-28 z-30 transition-all duration-500 pointer-events-auto ${isPanelOpen ? 'bottom-[78vh] md:bottom-8' : 'bottom-[14vh] md:bottom-8'}`}>
+        <button
+          onClick={triggerSimulation}
+          disabled={isSimulating || !policy}
+          className={`flex items-center justify-center gap-2 p-4 md:px-6 md:py-4 rounded-full md:rounded-2xl font-bold shadow-xl transition-all active:scale-95 ${
+            !policy 
+              ? 'bg-stone-300 text-stone-500 cursor-not-allowed' 
+              : 'bg-emerald-500 hover:bg-emerald-400 text-white'
+          }`}
+        >
+          {isSimulating ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Cloud className="w-5 h-5" />}
+          <span className="hidden md:inline">{isSimulating ? 'Simulating...' : 'Simulate Disruption'}</span>
+        </button>
+      </div>
+
+      {/* ── Profile Sidebar & No Policy Modal remain mostly unchanged ── */}
       {isProfileOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsProfileOpen(false)} />
-          <div className="relative w-full max-w-full sm:max-w-sm bg-white shadow-2xl h-full overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex justify-end pointer-events-auto">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsProfileOpen(false)} />
+          <div className={`relative w-full max-w-full sm:max-w-sm shadow-2xl h-full overflow-y-auto ${isDark ? 'bg-stone-900 text-stone-100' : 'bg-white text-stone-900'}`}>
             <div className="p-5 sm:p-6">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-bold text-stone-900">Profile</h2>
-                <button onClick={() => setIsProfileOpen(false)} className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 transition cursor-pointer">
+                <h2 className="text-xl font-bold">Profile</h2>
+                <button onClick={() => setIsProfileOpen(false)} className={`p-2 rounded-xl transition ${isDark ? 'bg-stone-800 hover:bg-stone-700' : 'bg-stone-100 hover:bg-stone-200'}`}>
                   <X className="w-5 h-5 text-stone-500" />
                 </button>
               </div>
@@ -858,7 +762,7 @@ const Dashboard: React.FC = () => {
                 <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4">
                   <User className="w-10 h-10 text-emerald-600" />
                 </div>
-                <h3 className="text-xl font-bold text-stone-900">{profile.fullName}</h3>
+                <h3 className="text-xl font-bold">{profile.fullName}</h3>
                 <p className="text-stone-500 text-sm">{profile.email}</p>
               </div>
               <div className="space-y-3 mb-8">
@@ -868,41 +772,36 @@ const Dashboard: React.FC = () => {
                   { icon: <Briefcase className="w-4 h-4 text-stone-400" />, label: 'Platform', val: profile.deliveryPlatform },
                   { icon: <Bike className="w-4 h-4 text-stone-400" />, label: 'Vehicle', val: profile.vehicleType },
                 ].map((row, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3.5 bg-stone-50 rounded-xl">
+                  <div key={i} className={`flex items-center gap-3 p-3.5 rounded-xl ${isDark ? 'bg-stone-800/50' : 'bg-stone-50'}`}>
                     {row.icon}
                     <div>
                       <p className="text-[10px] text-stone-400 uppercase font-semibold">{row.label}</p>
-                      <p className="text-sm font-medium text-stone-700">{row.val || '—'}</p>
+                      <p className={`text-sm font-medium ${isDark ? 'text-stone-300' : 'text-stone-700'}`}>{row.val || '—'}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 font-semibold rounded-xl hover:bg-rose-100 transition cursor-pointer"
-              >
-                <LogOut className="w-5 h-5" />
-                Sign Out
+              <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 font-semibold rounded-xl hover:bg-rose-100 transition cursor-pointer">
+                <LogOut className="w-5 h-5" /> Sign Out
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── No policy modal ───────────────────────────────────────────── */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 pointer-events-auto">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+          <div className={`relative rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center ${isDark ? 'bg-stone-900 text-stone-100' : 'bg-white text-stone-900'}`}>
             <div className="w-16 h-16 mx-auto bg-amber-100 rounded-full flex items-center justify-center mb-6">
               <ShieldAlert className="w-8 h-8 text-amber-600" />
             </div>
-            <h3 className="text-2xl font-bold text-stone-900 mb-2">No Active Policy</h3>
+            <h3 className="text-2xl font-bold mb-2">No Active Policy</h3>
             <p className="text-stone-500 mb-8">You need an active policy to access weather protection and instant payouts.</p>
-            <button onClick={() => navigate('/policy')} className="w-full bg-stone-900 text-white font-semibold py-3.5 rounded-xl hover:bg-stone-800 transition cursor-pointer">
+            <button onClick={() => navigate('/policy')} className="w-full bg-emerald-500 text-white font-semibold py-3.5 rounded-xl hover:bg-emerald-400 transition cursor-pointer">
               Activate Policy
             </button>
-            <button onClick={() => setShowModal(false)} className="w-full mt-3 text-stone-500 font-medium py-3 hover:text-stone-700 transition cursor-pointer">
+            <button onClick={() => setShowModal(false)} className="w-full mt-3 text-stone-500 font-medium py-3 hover:text-stone-400 transition cursor-pointer">
               Maybe Later
             </button>
           </div>
