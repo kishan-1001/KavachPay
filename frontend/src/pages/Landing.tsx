@@ -9,6 +9,7 @@ import {
   CloudRain,
   Coins,
   Globe,
+  Menu,
   Moon,
   Shield,
   ShieldCheck,
@@ -16,6 +17,7 @@ import {
   Star,
   Sun,
   TrendingUp,
+  X,
   Zap,
 } from 'lucide-react';
 import { useTheme } from '../lib/ThemeContext';
@@ -150,6 +152,7 @@ const Landing: React.FC = () => {
   const { isDark, toggle } = useTheme();
   const [activeFeature, setActiveFeature] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -175,9 +178,9 @@ const Landing: React.FC = () => {
       {/* Navigation */}
       <header className="sticky top-0 z-50 bg-stone-50/95 dark:bg-stone-950/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-3 py-4 sm:h-16 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex items-center gap-2 sm:gap-3 cursor-pointer" onClick={() => navigate('/')}>
               <img
                 src="/KavachPay_logo.png"
                 alt="KavachPay"
@@ -202,8 +205,8 @@ const Landing: React.FC = () => {
               </a>
             </div>
 
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-3">
+            {/* Right side (Desktop: Auth, Mobile: Theme + Hamburger) */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={toggle}
                 aria-label="Toggle theme"
@@ -211,20 +214,60 @@ const Landing: React.FC = () => {
               >
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
+              <div className="hidden md:flex items-center gap-3">
+                <button
+                  onClick={() => navigate('/signin')}
+                  className="text-sm font-semibold text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors px-3 sm:px-4 py-2 cursor-pointer"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => navigate('/signup')}
+                  className="bg-stone-900 dark:bg-[#ffffff] text-white dark:text-[#000000] text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full hover:bg-stone-800 dark:hover:bg-[#f0f0f0] transition-all hover:shadow-lg active:scale-[0.98] cursor-pointer"
+                >
+                  Get Started
+                </button>
+              </div>
               <button
-                onClick={() => navigate('/signin')}
-                className="text-sm font-semibold text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors px-3 sm:px-4 py-2 cursor-pointer"
+                className="md:hidden p-2 rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                Log in
-              </button>
-              <button
-                onClick={() => navigate('/signup')}
-                className="bg-stone-900 dark:bg-[#ffffff] text-white dark:text-[#000000] text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full hover:bg-stone-800 dark:hover:bg-[#f0f0f0] transition-all hover:shadow-lg active:scale-[0.98] cursor-pointer"
-              >
-                Get Started
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-stone-200 dark:border-stone-800 flex flex-col gap-4 animate-in slide-in-from-top-2">
+              <button onClick={() => { setIsMobileMenuOpen(false); navigate('/howitworks'); }} className="text-left text-base font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 px-2 py-1">
+                How it Works
+              </button>
+              <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 px-2 py-1">
+                Features
+              </a>
+              <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 px-2 py-1">
+                Pricing
+              </a>
+              <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 px-2 py-1">
+                FAQ
+              </a>
+              <div className="flex flex-col gap-3 pt-4 mt-2 border-t border-stone-200 dark:border-stone-800">
+                <button
+                  onClick={() => { setIsMobileMenuOpen(false); navigate('/signin'); }}
+                  className="w-full text-center text-sm font-semibold text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 rounded-full py-2.5 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => { setIsMobileMenuOpen(false); navigate('/signup'); }}
+                  className="w-full text-center bg-stone-900 dark:bg-[#ffffff] text-white dark:text-[#000000] text-sm font-semibold rounded-full py-2.5 hover:bg-stone-800 dark:hover:bg-[#f0f0f0] transition-colors"
+                >
+                  Get Started
+                </button>
+              </div>
+            </div>
+          )}
         </nav>
       </header>
 
